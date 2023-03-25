@@ -56,7 +56,7 @@ struct VecStaticInstFlags {
 };
 */
 /* VectorStaticInst holds the info of all vector instructions */
-class VectorStaticInst : public StaticInst//, public VecStaticInstFlags
+class VectorStaticInst : public StaticInst
 {
 protected:
     using StaticInst::StaticInst;
