@@ -78,7 +78,7 @@ VectorDynInst() : vinst(NULL),
   void
   set_VectorStaticInst(RiscvISA::VectorStaticInst* instruction){
     vinst  = instruction;
-    }
+  }
 
 private:
   RiscvISA::VectorStaticInst *vinst;

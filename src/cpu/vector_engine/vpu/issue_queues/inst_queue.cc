@@ -137,8 +137,7 @@ InstQueue::evaluate()
 
         int queue_size = (OoO_queues) ? Instruction_Queue.size() : 1;
 
-        for (int i=0 ; i< queue_size ; i++)
-        {
+        for (int i = 0 ; i < queue_size ; i++) {
             Instruction = Instruction_Queue[i];
 
             src1 = Instruction->dyn_insn->get_renamed_src1();
@@ -148,19 +147,13 @@ InstQueue::evaluate()
 
             masked_op = (Instruction->insn.vm()==0);
 
-            /*
-             * Instructions with Scalar operands set the src1_ready signal
-             */
+            //Instructions with Scalar operands set the src1_ready signal
             vx_op = (Instruction->insn.func3()==4) || (Instruction->insn.func3()==6);
             vf_op = (Instruction->insn.func3()==5);
             vi_op = (Instruction->insn.func3()==3);
 
-            if (masked_op) {
-                mask_ready = vectorwrapper->vector_reg_validbit->
-                    get_preg_valid_bit(mask);
-            } else {
-                mask_ready = 1;
-            }
+            mask_ready = !masked_op || (masked_op && vectorwrapper->vector_reg_validbit->
+                get_preg_valid_bit(mask));
 
             if ((Instruction->insn.arith2Srcs() ||
                 Instruction->insn.arith3Srcs()) && !( vx_op || vf_op || vi_op)) {
