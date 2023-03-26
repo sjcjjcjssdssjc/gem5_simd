@@ -100,13 +100,12 @@ MemUnitReadTiming::initialize(VectorEngine& vector_wrapper, uint64_t count,
     vecIndex = 0;
 
     auto fin = [on_item_load,SIZE,count,this]
-        (uint64_t i, std::vector<uint64_t> line_offsets)
-    {
+        (uint64_t i, std::vector<uint64_t> line_offsets) {
         return [on_item_load,SIZE,count,i,line_offsets,this]
-            (uint8_t*data, uint8_t size)
-        {
-            for (uint64_t j=0; j< line_offsets.size(); ++j) {
-                bool _done = ( (i+j+1) == count );
+            (uint8_t*data, uint8_t size) {
+            //spans multiple cache lines
+            for (uint64_t j = 0; j < line_offsets.size(); ++j) {
+                bool _done = ((i+j+1) == count);
                 uint8_t *ndata = new uint8_t[SIZE];
                 memcpy(ndata, data + line_offsets[j], SIZE);
                 DPRINTF(MemUnitReadTiming,
@@ -118,8 +117,7 @@ MemUnitReadTiming::initialize(VectorEngine& vector_wrapper, uint64_t count,
     };
 
     readFunction = [location,vaddr,vstride,SIZE,mop,
-        count,on_item_load,xc,fin,this]()
-    {
+        count,on_item_load,xc,fin,this]() {
         std::vector<uint64_t> line_offsets;
 
         //scratch and cache could use different line sizes
@@ -132,23 +130,24 @@ MemUnitReadTiming::initialize(VectorEngine& vector_wrapper, uint64_t count,
 
         uint64_t line_addr;
         uint8_t items_in_line;
-        uint64_t addr;
+        uint64_t addr;//first addr
         uint64_t i = this->vecIndex;
 
         if (mop != 3) //no indexed operation
         {
             //we can always read the first item
-            addr = vaddr + SIZE*(i*vstride);
+            //SIZE is DST_SIZE
+            addr = vaddr + SIZE * (i * vstride);
             line_addr = addr - (addr % line_size);
             line_offsets.push_back(addr % line_size);
             items_in_line = 1;
 
             //try to read more items in the same cache-line
-            for (uint8_t j=1; j<(line_size/SIZE) && (i+j)<count; ++j) {
-                uint64_t next_addr = vaddr + SIZE*((i+j)*vstride );
+            for (uint8_t j = 1; j < (line_size / SIZE) && (i + j) < count; ++j) {
+                uint64_t next_addr = vaddr + SIZE * ((i + j) * vstride);
                 uint64_t next_line_addr = next_addr - (next_addr % line_size);
 
-                if (next_line_addr == line_addr) {
+                if (next_line_addr == line_addr) {//first_line_addr
                     items_in_line += 1;
                     line_offsets.push_back(next_addr % line_size);
                 } else {
@@ -162,9 +161,9 @@ MemUnitReadTiming::initialize(VectorEngine& vector_wrapper, uint64_t count,
                 DPRINTF(MemUnitReadTiming, "try_read dataQ Addrs empty\n");
                 return false;
             }
-            uint64_t got = std::min(line_size/SIZE, can_get);
-            uint8_t *buf = new uint8_t[got*SIZE];
-            for (uint8_t i=0; i<got; ++i) {
+            uint64_t got = std::min(line_size / SIZE, can_get);
+            uint8_t *buf = new uint8_t[got * SIZE];
+            for (uint8_t i = 0; i < got; ++i) {
                 memcpy(buf+SIZE*i, this->dataQ[i], SIZE);
             }
 
@@ -185,13 +184,13 @@ MemUnitReadTiming::initialize(VectorEngine& vector_wrapper, uint64_t count,
             line_offsets.push_back(addr % line_size);
             items_in_line = 1;
 
-            DPRINTF(MemUnitReadTiming, "Trying to get mora than 1 element"
+            DPRINTF(MemUnitReadTiming, "Trying to get more than 1 element"
                 " from a line\n");
             DPRINTF(MemUnitReadTiming, "reading addr  %#x ,line_addr %#x "
                 "with %d \n",addr, line_addr, items_in_line);
 
             //try to read more items in the same cache-line
-            for (uint8_t j=1; j<got; j++) {
+            for (uint8_t j = 1; j < got; j++) {
                 if (SIZE == 8) {
                     index_addr = (uint64_t)((uint64_t*)buf)[j];
                 } else if (SIZE == 4) {
@@ -211,7 +210,7 @@ MemUnitReadTiming::initialize(VectorEngine& vector_wrapper, uint64_t count,
                 DPRINTF(MemUnitReadTiming, "next_line_addr  %#x ,line_addr "
                     "%#x  \n",next_line_addr, line_addr);
 
-                if (next_line_addr == line_addr) {
+                if (next_line_addr == line_addr) {//first_line_addr
                     items_in_line += 1;
                     line_offsets.push_back(next_addr % line_size);
                 } else {
@@ -219,7 +218,7 @@ MemUnitReadTiming::initialize(VectorEngine& vector_wrapper, uint64_t count,
                 }
                 DPRINTF(MemUnitReadTiming,"items_in_line %d\n",items_in_line);
             }
-        delete buf;
+            delete buf;
         } //end indexed operation
 
         //try to read the line
@@ -228,6 +227,7 @@ MemUnitReadTiming::initialize(VectorEngine& vector_wrapper, uint64_t count,
 
         bool success;
         if (location == 0) { // location = 0 = MEMORY
+            //vector cache
             Cache_line_r_req++;
             success = vectorwrapper->readVectorMem(line_addr, line_size,
                  xc->tcBase(),this->channel, fin(i, line_offsets));
@@ -236,10 +236,10 @@ MemUnitReadTiming::initialize(VectorEngine& vector_wrapper, uint64_t count,
                 this->channel, fin(i, line_offsets));
         }
         if (success) {
-            if (mop == 3) {
-                for (uint8_t j=0; j<items_in_line; j++) {
+            if (mop == 3) {//no indexed
+                for (uint8_t j = 0; j < items_in_line; j++) {
                     this->dataQ.pop_front();
-                    }
+                }
             }
             this->vecIndex += items_in_line;
             this->done = (this->vecIndex == count);

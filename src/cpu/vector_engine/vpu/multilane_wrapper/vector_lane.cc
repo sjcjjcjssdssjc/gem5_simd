@@ -194,37 +194,32 @@ VectorLane::issue(VectorEngine& vector_wrapper,
          * element of some vector register and send immediately to
          * the scalar reg,such as vfmv_fs and vmv_xs
          */
-        if (insn.getName() == "vext_xv") {
+        //The vfmv.f.s instruction copies a single SEW-wide element from index 0 
+        //of the source vector register to a destination scalar floating-point register.
+        
+        if (insn.getName() == "vext_xv") { //deprecated in vector 1.0
             addr_src2 = ((uint64_t)dyn_insn->get_renamed_src2() * mvl_bits / 8) + (src1 * DATA_SIZE);
             DPRINTF(VectorLane, "vext_xv: base addrs 0x%x , element addrs 0x%x, src1 %d\n",
                         ((uint64_t)dyn_insn->get_renamed_src2() * mvl_bits / 8), addr_src2,src1);
         }
+        
 
+        //vfmv.f.s rd, vs2  # f[rd] = vs2[0] (rs1=0):vs2
         srcBReader->initialize(vector_wrapper, 1, DATA_SIZE, addr_src2, 0, 1, location,
             xc, [dyn_insn, done_callback, xc, DATA_SIZE, vl_count, move_to_core_int, move_to_core_float, this]
-            (uint8_t* data, uint8_t size, bool done)
-            {
+            (uint8_t* data, uint8_t size, bool done) { 
+                //on_item_load
                 assert(size == DATA_SIZE);
                 uint8_t* ndata = new uint8_t[DATA_SIZE];
                 memcpy(ndata, data, DATA_SIZE);
-                if (DATA_SIZE == 8) {
-                    scalar_data = (uint64_t)((uint64_t*)ndata)[0];
-                }
-                else if (DATA_SIZE == 4)
-                {
-                    scalar_data = (uint64_t)((uint32_t*)ndata)[0];
-                }
-                else if (DATA_SIZE == 2)
-                {
-                    scalar_data = (uint64_t)((uint16_t*)ndata)[0];
-                }
-                else if (DATA_SIZE == 1)
-                {
-                    scalar_data = (uint64_t)((uint8_t*)ndata)[0];
-                } else {
-                    panic("Invalid option\n");
-                }
+                //copyed twice: read_timingunit.cc:111 and now
+                if (DATA_SIZE == 8) scalar_data = (uint64_t)((uint64_t*)ndata)[0];
+                else if (DATA_SIZE == 4)scalar_data = (uint64_t)((uint32_t*)ndata)[0];
+                else if (DATA_SIZE == 2)scalar_data = (uint64_t)((uint16_t*)ndata)[0];
+                else if (DATA_SIZE == 1)scalar_data = (uint64_t)((uint8_t*)ndata)[0];
+                else panic("Invalid option\n");
 
+                //move to rd
                 if (move_to_core_float) {
                     xc->setFloatRegOperandBits(
                         dyn_insn->get_VectorStaticInst(), 0, scalar_data);
@@ -259,22 +254,27 @@ VectorLane::issue(VectorEngine& vector_wrapper,
         dataPath->startTicking(*this, insn, vl_count, dst_count, sew,
             slide_count, src1,
             [dyn_insn, done_callback, xc, mvl_element, vl_count, DST_SIZE, mask_dst, mask_dst_data, this]
-        (uint8_t* data, uint8_t size, bool done) mutable {
+            (uint8_t* data, uint8_t size, bool done) mutable {
+                //this function is startticking's callback
                 assert(size == DST_SIZE);
-
+                //vmfeq_vv:compare two source operands and write the comparison result to a mask register.
+                //move data array into ndata
                 if (!vector_to_scalar)
                 {
                     if (mask_dst) {
-                        mask_dst_data = *(uint8_t*)data;
-                        delete data;
+                        //mask_dst_data = *(uint8_t*)data;
                         uint8_t* ndata = new uint8_t[DST_SIZE];
-                        memcpy(ndata, &mask_dst_data, DST_SIZE);
+                        //memcpy(ndata, &mask_dst_data, DST_SIZE);
+                        memcpy(ndata, data, 1);
+                        memset(ndata + 1, 0, DST_SIZE - 1);
+
                         this->dstWriter->queueData(ndata);
                         mask_dst_data = 0;
                         if (DST_SIZE == 8) { DPRINTF(VectorLane, "Writting mask Rrgister: %X\n", *(uint64_t*)ndata); }
                         if (DST_SIZE == 4) { DPRINTF(VectorLane, "Writting mask Rrgister: %X\n", *(uint32_t*)ndata); }
                         if (DST_SIZE == 2) { DPRINTF(VectorLane, "Writting mask Rrgister: %X\n", *(uint16_t*)ndata); }
                         if (DST_SIZE == 1) { DPRINTF(VectorLane, "Writting mask Rrgister: %X\n", *(uint8_t*)ndata); }
+                        delete data;
                     }
                     else {
                         this->dstWriter->queueData(data);
@@ -290,17 +290,23 @@ VectorLane::issue(VectorEngine& vector_wrapper,
                      * some vector register and send immediately to the scalar reg,
                      * such as vfmv_fs and vmv_xs.
                      */
+                    //vfirst.m rd, vs2, vm
+                    //The vfirst instruction finds the lowest-numbered active 
+                    //element of the source mask vector that has the value 1 
+                    //and writes that element’s index to a GPR. If no active element 
+                    //has the value 1, -1 is written to the GPR.
+
                     this->srcBReader->stop();
                     uint8_t* ndata = new uint8_t[DST_SIZE];
                     memcpy(ndata, data, DST_SIZE);
-                    if (DST_SIZE == 8)
-                    {
+                    if (DST_SIZE == 8) {
                         scalar_data = (uint64_t)((uint64_t*)ndata)[0];
                     }
-                    else if (DST_SIZE == 4)
-                    {
+                    else if (DST_SIZE == 4) {
                         scalar_data = (uint64_t)((uint32_t*)ndata)[0];
                     }
+                    //only in-order cpus have exec context.
+                    //so no arch regs for that kind of cpu.
                     xc->setIntRegOperand(
                         dyn_insn->get_VectorStaticInst(), 0, scalar_data);
                     DPRINTF(VectorLane, "Writting Int Register: %d ,data: 0x%x \n"
