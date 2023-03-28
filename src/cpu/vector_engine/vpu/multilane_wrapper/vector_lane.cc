@@ -290,11 +290,12 @@ VectorLane::issue(VectorEngine& vector_wrapper,
                      * some vector register and send immediately to the scalar reg,
                      * such as vfmv_fs and vmv_xs.
                      */
-                    //vfirst.m rd, vs2, vm
-                    //The vfirst instruction finds the lowest-numbered active 
-                    //element of the source mask vector that has the value 1 
-                    //and writes that element’s index to a GPR. If no active element 
-                    //has the value 1, -1 is written to the GPR.
+                    // vfirst.m rd, vs2, vm
+                    // The vfirst instruction finds the lowest-numbered active
+                    // element of the source mask vector that has the value 1
+                    // and writes that element’s index to a GPR.
+                    // If no active element has the value 1,
+                    // -1 is written to the GPR.
 
                     this->srcBReader->stop();
                     uint8_t* ndata = new uint8_t[DST_SIZE];

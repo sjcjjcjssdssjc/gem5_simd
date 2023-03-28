@@ -66,7 +66,7 @@ VectorDynInst() : vinst(NULL),
   uint16_t get_renamed_mask() { return renamed_mask; }
   void set_renamed_mask(uint16_t val) { renamed_mask  = val; }
 
-/* rob_entry */
+  // rob_entry
   uint16_t get_rob_entry() { return rob_entry; }
   void set_rob_entry(uint16_t val) { rob_entry  = val; }
 
@@ -76,8 +76,8 @@ VectorDynInst() : vinst(NULL),
   }
 
   void
-  set_VectorStaticInst(RiscvISA::VectorStaticInst* instruction){
-    vinst  = instruction;
+  set_VectorStaticInst(RiscvISA::VectorStaticInst* instruction) {
+    vinst = instruction;
   }
 
 private:

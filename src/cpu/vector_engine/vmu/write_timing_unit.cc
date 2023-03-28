@@ -120,19 +120,19 @@ MemUnitWriteTiming::initialize(VectorEngine& vector_wrapper, uint64_t count,
         if (!can_get) {
             DPRINTF(MemUnitWriteTiming, "try_write dataQ empty\n");
             return false;
-        } else if (can_get < get_up_to){
+        } else if (can_get < get_up_to) {
             DPRINTF(MemUnitWriteTiming, "try_write needs more elements\n");
             return false;
         }
         uint64_t got = get_up_to; //std::min((uint64_t)get_up_to, can_get);
         uint8_t *buf = new uint8_t[got*SIZE];
         for (uint32_t i = 0; i < got; ++i) {
-            memcpy(buf+SIZE*i, this->dataQ[i], SIZE);
+            memcpy(buf + SIZE * i, this->dataQ[i], SIZE);
         }
         uint64_t actually_written;
         if ((actually_written = fn(buf, (uint32_t)got))) {
             delete [] buf;
-            for (uint32_t i=0; i<actually_written; ++i) {
+            for (uint32_t i = 0; i < actually_written; ++i) {
                 uint8_t * data = dataQ.front();
                 delete [] data;
                 dataQ.pop_front();
@@ -153,8 +153,8 @@ MemUnitWriteTiming::initialize(VectorEngine& vector_wrapper, uint64_t count,
     //need 'this' for DPRINTF
     auto fin = [on_item_store,count,this](uint64_t i, uint64_t items_ready) {
         return [on_item_store,count,i,items_ready,this]() {
-            for (uint64_t j=0; j<items_ready; ++j) {
-                bool _done = ( (i+j+1) == count );
+            for (uint64_t j = 0; j < items_ready; ++j) {
+                bool _done = ((i+j+1) == count);
                 DPRINTF(MemUnitWriteTiming,"calling on_item_store with"
                     " 'done'=%d\n", _done);
                 on_item_store(_done);
@@ -187,11 +187,12 @@ MemUnitWriteTiming::initialize(VectorEngine& vector_wrapper, uint64_t count,
             consec_items = 1;
 
             //now find any consecutive items that we can also write
-            for (uint64_t j=1; j<(line_size/SIZE) && (i+j)<count; ++j) {
+            for (uint64_t j = 1; j < (line_size/SIZE) && (i+j)<count; ++j) {
                 uint64_t next_addr = vaddr +
                     SIZE*((i+j)*vstride );
                 uint64_t next_line_addr = next_addr - (next_addr % line_size);
-                if (next_addr-SIZE*j == addr && line_addr == next_line_addr) {
+                if (next_addr - SIZE * j == addr
+                    && line_addr == next_line_addr) {
                     ++consec_items;
                 } else {
                     break;
@@ -207,7 +208,7 @@ MemUnitWriteTiming::initialize(VectorEngine& vector_wrapper, uint64_t count,
             uint64_t got = std::min(line_size/SIZE, can_get);
             uint8_t *buf = new uint8_t[got*SIZE];
             for (uint8_t i=0; i<got; ++i) {
-                memcpy(buf+SIZE*i, this->AddrsQ[i], SIZE);
+                memcpy(buf + SIZE * i, this->AddrsQ[i], SIZE);
             }
 
             uint64_t index_addr;
@@ -255,7 +256,7 @@ MemUnitWriteTiming::initialize(VectorEngine& vector_wrapper, uint64_t count,
                 if (vindexed) {
                     for (uint16_t j=0; j<items_ready; j++) {
                         this->AddrsQ.pop_front();
-                        }
+                    }
                 }
                 this->vecIndex += items_ready;
                 this->done = (this->vecIndex == count);
