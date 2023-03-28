@@ -43,12 +43,12 @@
 ReorderBuffer::ReorderBuffer(ReorderBufferParams *p):
 TickedObject(p),occupied(false), ROB_Size(p->ROB_Size)
 {
-    for (int i=0 ; i<ROB_Size ; i++) {
+    for (int i = 0 ; i < ROB_Size ; i++) {
         rob.push_back(new rob_entry(0,0));
     }
-    tail=0;
-    head=0;
-    valid_elements=0;
+    tail = 0;
+    head = 0;
+    valid_elements = 0;
 }
 
 ReorderBuffer::~ReorderBuffer()
@@ -92,7 +92,7 @@ ReorderBuffer::evaluate()
 {
     assert(running);
     assert((valid_elements >= 0) && (valid_elements <= ROB_Size));
-    if ( valid_elements==0) {
+    if (valid_elements == 0) {
         stopTicking(); return;
     }
     /* For statistics*/
@@ -103,13 +103,13 @@ ReorderBuffer::evaluate()
     if (rob[head]->executed)
     {
         DPRINTF(ReorderBuffer,"Commiting ROB entry %d \n",head);
-        if (rob[head]->valid_old_dst)
-        {
-        DPRINTF(ReorderBuffer,"Freeing up old_dst %d \n",rob[head]->old_dst);
-        vectorwrapper->vector_rename->set_frl(rob[head]->old_dst);
+        if (rob[head] -> valid_old_dst) {
+            DPRINTF(ReorderBuffer,"Freeing up old_dst %d \n",
+            rob[head] -> old_dst);
+            vectorwrapper->vector_rename->set_frl(rob[head]->old_dst);
         }
-        if (head == ROB_Size-1) {
-            head=0;
+        if (head == ROB_Size - 1) {
+            head = 0;
         } else {
             head++;
         }
@@ -120,13 +120,13 @@ ReorderBuffer::evaluate()
 bool
 ReorderBuffer::rob_full()
 {
-    return (valid_elements==ROB_Size);
+    return (valid_elements == ROB_Size);
 }
 
 bool
 ReorderBuffer::rob_empty()
 {
-    return (valid_elements==0);
+    return (valid_elements == 0);
 }
 
 uint32_t

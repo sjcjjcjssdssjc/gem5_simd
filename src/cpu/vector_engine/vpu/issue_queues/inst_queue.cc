@@ -102,16 +102,14 @@ InstQueue::regStats()
 void
 InstQueue::evaluate()
 {
-    if ( (Instruction_Queue.size()==0) && (Memory_Queue.size()==0) )
-    {
+    if ((Instruction_Queue.size() == 0) && (Memory_Queue.size() == 0)) {
         stopTicking();
         DPRINTF(InstQueue,"Instruction Queue can not Issue more instructions"
             " because is empty \n");
         return;
     }
 
-    if (Instruction_Queue.size()!=0 && vectorwrapper->cluster_available())
-    {
+    if (Instruction_Queue.size() !=0 && vectorwrapper->cluster_available()) {
         /* For statistics */
         int inst_queue_size = Instruction_Queue.size();
         if ((double)inst_queue_size > VectorArithQueueSlotsUsed.value()) {
@@ -208,7 +206,7 @@ InstQueue::evaluate()
                 uint64_t renamed_dst = Instruction->dyn_insn->get_renamed_dst();
                 if (wb_enable) {
                     vectorwrapper->vector_reg_validbit->
-                    set_preg_valid_bit(renamed_dst,1);
+                    set_preg_valid_bit(renamed_dst, 1);
                 }
                 //Setting the executed bit in the ROB
                 uint16_t rob_entry = Instruction->dyn_insn->get_rob_entry();
@@ -229,14 +227,13 @@ InstQueue::evaluate()
                 this->occupied = false;
             });
         }
-        else
-        {
+        else {
             //DPRINTF(InstQueue,"Sources not ready\n");
         }
     }
     // Stores are executed in order
     // however it is possible to advance loads OoO
-    if ((Memory_Queue.size()!=0)
+    if ((Memory_Queue.size() != 0)
         && !vectorwrapper->vector_memory_unit->isOccupied()) {
 
         /* For statistics */
@@ -258,7 +255,7 @@ InstQueue::evaluate()
         uint64_t queue_slot = 0;
         int queue_size = (OoO_queues) ? Memory_Queue.size() : 1;
         //int min = std::min(queue_size ,32);
-        for (int i = 0;i < queue_size;i++) {
+        for (int i = 0; i < queue_size; i++) {
             Mem_Instruction = Memory_Queue[i];
             isLoad = Mem_Instruction->insn.isLoad();
             isStore = Mem_Instruction->insn.isStore();
@@ -308,7 +305,7 @@ InstQueue::evaluate()
             /*printing the issued instruction*/
             printMemInst(Mem_Instruction->insn,Mem_Instruction->dyn_insn);
             /*removing the instruction from the queue*/
-            Memory_Queue.erase(Memory_Queue.begin()+queue_slot);
+            Memory_Queue.erase(Memory_Queue.begin() + queue_slot);
             /*Issuing the instruction*/
             vectorwrapper->issue(Mem_Instruction->insn,
                 Mem_Instruction->dyn_insn,Mem_Instruction->xc,
@@ -316,28 +313,32 @@ InstQueue::evaluate()
                 Mem_Instruction->rename_vtype,Mem_Instruction->rename_vl,
                 [Mem_Instruction,this](Fault f) {
 
-                bool wb_enable = !Mem_Instruction->insn.isStore();
-                uint64_t renamed_dst = Mem_Instruction->dyn_insn->get_renamed_dst();
-                // SETTING VALID BIT
-                if (wb_enable) {
-                    vectorwrapper->vector_reg_validbit->
-                    set_preg_valid_bit(renamed_dst,1);
-                }
+                    bool wb_enable = !Mem_Instruction->insn.isStore();
+                    uint64_t renamed_dst =
+                    Mem_Instruction->dyn_insn->get_renamed_dst();
+                    // SETTING VALID BIT
+                    if (wb_enable) {
+                        vectorwrapper->vector_reg_validbit->
+                        set_preg_valid_bit(renamed_dst,1);
+                    }
 
-                //Setting the executed bit in the ROB
-                uint16_t rob_entry =
+                    // Setting the executed bit in the ROB
+                    uint16_t rob_entry =
                     Mem_Instruction->dyn_insn->get_rob_entry();
-                vectorwrapper->vector_rob->set_rob_entry_executed(rob_entry);
+                    vectorwrapper->vector_rob->
+                    set_rob_entry_executed(rob_entry);
 
-                DPRINTF(InstQueue,"Executed instruction %s\n",
-                    Mem_Instruction->insn.getName());
-                DPRINTF(InstQueue,"Memory queue Size %d\n",Memory_Queue.size());
-                //Memory_Queue.pop_front();
-                //delete Mem_Instruction->xc;
-                delete Mem_Instruction->dyn_insn;
-                delete Mem_Instruction;
-                this->occupied = false;
-                //DPRINTF(VectorEngine,"Commit Ends\n");
+                    DPRINTF(InstQueue,"Executed instruction %s\n",
+                        Mem_Instruction->insn.getName());
+                    DPRINTF(InstQueue,"Memory queue Size %d\n",
+                    Memory_Queue.size());
+
+                    // Memory_Queue.pop_front();
+                    // delete Mem_Instruction->xc;
+                    delete Mem_Instruction->dyn_insn;
+                    delete Mem_Instruction;
+                    this->occupied = false;
+                    // DPRINTF(VectorEngine,"Commit Ends\n");
                 });
         }
         else
@@ -353,7 +354,13 @@ InstQueue::printMemInst(RiscvISA::VectorStaticInst& insn,VectorDynInst *vector_d
     uint64_t pc = insn.getPC();
     bool indexed = (insn.mop() ==3);
     bool masked_op = (insn.vm()==0);
-
+    /*
+        rs1[4:0] specifies x register holding base address
+        rs2[4:0] specifies x register holding stride
+        vs2[4:0] specifies v register holding address offsets
+        vs3[4:0] specifies v register holding store data
+        vd[4:0] specifies v register destination of load
+    */
     uint32_t PDst = vector_dyn_insn->get_renamed_dst();
     uint32_t POldDst = vector_dyn_insn->get_renamed_old_dst();
     uint32_t Pvs2 = vector_dyn_insn->get_renamed_src2();
@@ -369,7 +376,7 @@ InstQueue::printMemInst(RiscvISA::VectorStaticInst& insn,VectorDynInst *vector_d
 
     if (insn.isLoad())
     {
-        if (indexed){
+        if (indexed) {
             DPRINTF(InstQueueInst,"issuing inst: %s v%d v%d       PC 0x%X\n",
                 insn.getName(),insn.vd(),insn.vs2(),*(uint64_t*)&pc);
             DPRINTF(InstQueueRenInst,"issuing renamed inst: %s v%d v%d %s  old_dst v%d"
@@ -384,7 +391,7 @@ InstQueue::printMemInst(RiscvISA::VectorStaticInst& insn,VectorDynInst *vector_d
     }
     else if (insn.isStore())
     {
-         if (indexed){
+        if (indexed) {
             DPRINTF(InstQueueInst,"issuing inst: %s v%d v%d       PC 0x%X\n",
                 insn.getName(),insn.vd(),insn.vs2(),*(uint64_t*)&pc);
             DPRINTF(InstQueueRenInst,"issuing renamed inst: %s v%d v%d %s     PC 0x%X\n",
@@ -420,9 +427,11 @@ InstQueue::printArithInst(RiscvISA::VectorStaticInst& insn,VectorDynInst *vector
                 (vf_op) ? "f" :
                 (vi_op) ? " " : "v";
 
+    //does not rename for scalar
     uint32_t PDst = (insn.VectorToScalar()==1) ? insn.vd() :
                     vector_dyn_insn->get_renamed_dst();
     uint32_t POldDst = vector_dyn_insn->get_renamed_old_dst();
+    //rs1 for vx,vf,vi
     uint32_t Pvs1 = (vx_op || vf_op || vi_op) ? insn.vs1() :
                     vector_dyn_insn->get_renamed_src1();
     uint32_t Pvs2 = vector_dyn_insn->get_renamed_src2();

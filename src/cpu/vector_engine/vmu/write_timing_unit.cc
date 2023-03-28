@@ -115,8 +115,7 @@ MemUnitWriteTiming::initialize(VectorEngine& vector_wrapper, uint64_t count,
 
     // NOTE: be careful with uint16_t overflow here (incase super large vectors)
     auto try_write = [SIZE,this](uint32_t get_up_to,
-        std::function<uint16_t(uint8_t *, uint32_t)> fn)
-    {
+        std::function<uint16_t(uint8_t *, uint32_t)> fn) {
         uint64_t can_get = this->dataQ.size();
         if (!can_get) {
             DPRINTF(MemUnitWriteTiming, "try_write dataQ empty\n");
@@ -127,7 +126,7 @@ MemUnitWriteTiming::initialize(VectorEngine& vector_wrapper, uint64_t count,
         }
         uint64_t got = get_up_to; //std::min((uint64_t)get_up_to, can_get);
         uint8_t *buf = new uint8_t[got*SIZE];
-        for (uint32_t i=0; i<got; ++i) {
+        for (uint32_t i = 0; i < got; ++i) {
             memcpy(buf+SIZE*i, this->dataQ[i], SIZE);
         }
         uint64_t actually_written;

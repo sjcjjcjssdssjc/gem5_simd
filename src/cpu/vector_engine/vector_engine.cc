@@ -325,14 +325,14 @@ VectorEngine::renameVectorInst(RiscvISA::VectorStaticInst& insn, VectorDynInst *
     vs2 = insn.vs2();
     vs3 = insn.vs3();
 
-    masked_op = (insn.vm()==0);
+    masked_op = (insn.vm() == 0);
 
-    vx_op = (insn.func3()==4) || (insn.func3()==6);
-    vf_op = (insn.func3()==5);
-    vi_op = (insn.func3()==3);
+    vx_op = (insn.func3() == 4) || (insn.func3() == 6);
+    vf_op = (insn.func3() == 5);
+    vi_op = (insn.func3() == 3);
 
     uint8_t mop = insn.mop();
-    bool indexed = (mop ==3);
+    bool indexed = (mop == 3);
 
     if (insn.isVectorInstMem()) {
         // TODO: maked memory operations are not implemented
@@ -367,35 +367,35 @@ VectorEngine::renameVectorInst(RiscvISA::VectorStaticInst& insn, VectorDynInst *
         }
     }
     else if (insn.isVectorInstArith()) {
-        /* Physical  Mask */
-        PMask = masked_op ? vector_rename->get_preg_rat(0) :1024;
-        vector_dyn_insn->set_renamed_mask(PMask);
-        /* Physical Destination */
-        PDst = (dst_write_ena) ? vector_rename->get_frl() :1024;
-        vector_dyn_insn->set_renamed_dst(PDst);
-        /* Physical Old Destination */
+        PMask = masked_op ? vector_rename->get_preg_rat(0) : 1024;
+        PDst = (dst_write_ena) ? vector_rename->get_frl() : 1024;
         POldDst = (dst_write_ena) ? vector_rename->get_preg_rat(vd) : 1024;
-        vector_dyn_insn->set_renamed_old_dst(POldDst);
-        /* Physical source 2 */
         Pvs2 = vector_rename->get_preg_rat(vs2);
+
+        vector_dyn_insn->set_renamed_mask(PMask);
+        vector_dyn_insn->set_renamed_dst(PDst);
+        vector_dyn_insn->set_renamed_old_dst(POldDst);
         vector_dyn_insn->set_renamed_src2(Pvs2);
-        /* When the instruction use an scalar value as source 1, the physical source 1 is disable
-         * When the instruction uses only 1 source (insn.arith1Src()), the  source 1 is disable
+
+        /* When the instruction use an scalar value as source 1,
+         * the physical source 1 is disabled
+         * When the instruction uses only 1 source (insn.arith1Src()),
+         * the source 1 is disabled
          */
-        if( !(vx_op || vf_op || vi_op) && !insn.arith1Src()) {
-             /* Physical source 1 */
+        if (!(vx_op || vf_op || vi_op) && !insn.arith1Src()) {
+            // Physical source 1
             Pvs1 = vector_rename->get_preg_rat(vs1);
             vector_dyn_insn->set_renamed_src1(Pvs1);
         }
         /* dst_write_ena is set when the instruction has a vector destination register */
-        if(dst_write_ena) {
-            /* Setting the New Destination in the RAT structure */
+        if (dst_write_ena) {
+            // Setting the New Destination in the RAT structure
             vector_rename->set_preg_rat(vd,PDst);
-            /* Setting to 0 the new physical destinatio valid bit*/
+            // Setting to 0 the new physical destinatio valid bit
             vector_reg_validbit->set_preg_valid_bit(PDst,0);
         }
     } else {
-            panic("Invalid Vector Instruction insn=%#h\n", insn.machInst);
+        panic("Invalid Vector Instruction insn=%#h\n", insn.machInst);
     }
 }
 
@@ -422,7 +422,7 @@ VectorEngine::dispatch(RiscvISA::VectorStaticInst& insn, ExecContextPtr& xc,
     }
 
     last_lmul = vector_config->get_vtype_lmul(last_vtype);
-    if(last_lmul>1){
+    if (last_lmul > 1) {
         panic("LMUL>1 is not suported \n");
     }
 
@@ -487,26 +487,29 @@ VectorEngine::issue(RiscvISA::VectorStaticInst& insn,VectorDynInst *dyn_insn,
 
     uint64_t pc = insn.getPC();
     
-    if (insn.isVectorInstMem())
-    {
+    if (insn.isVectorInstMem()) {
+        // There is no scalar in this
         VectorMemIns++;
         DPRINTF(VectorEngine,"Sending instruction %s to VMU, pc 0x%lx\n"
-            ,insn.getName() , *(uint64_t*)&pc );
+            ,insn.getName(), *(uint64_t*)&pc);
+        // done_callback is write back.
         vector_memory_unit->issue(*this,insn,dyn_insn, xc,src1,src2,vtype,
             vl, done_callback);
 
         SumVL = SumVL.value() + vector_config->vector_length_in_bits(vl,vtype);
     }
     else if (insn.isVectorInstArith()) {
-
         SumVL = SumVL.value() + vector_config->vector_length_in_bits(vl,vtype);
         VectorArithmeticIns++;
         uint8_t lane_id_available = 0;
-        for (int i=0 ; i< num_clusters ; i++) {
-            if (!vector_lane[i]->isOccupied()) { lane_id_available = i; }
+        for (int i = 0 ; i < num_clusters; i++) {
+            if (!vector_lane[i] -> isOccupied()) {
+                lane_id_available = i;
+            }
         }
         DPRINTF(VectorEngine,"Sending instruction %s to Lanes, pc 0x%lx\n",
             insn.getName(), *(uint64_t*)&pc);
+        // done_callback is write back.
         vector_lane[lane_id_available]->issue(*this,insn,dyn_insn, xc, src1,
             vtype, vl,done_callback);
     } else {

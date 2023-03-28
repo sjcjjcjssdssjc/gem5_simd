@@ -36,13 +36,17 @@
  * Valid bits
  */
 VectorValidBit::VectorValidBit(VectorValidBitParams *p):
-SimObject(p), PhysicalRegs(p->PhysicalRegs)
+SimObject(p), PhysicalRegs(p->PhysicalRegs), PhyReg_scalar(32)
 {
-    for (uint64_t i=0; i<32; i++) {
+    for (uint64_t i = 0; i < 32; i++) {
         reg_valid_bit.push_back(1);
     }
-    for (uint64_t i=32; i<PhysicalRegs; i++) {
+    for (uint64_t i = 32; i < PhysicalRegs; i++) {
         reg_valid_bit.push_back(0);
+        //vector freelist only contains 32~PhysicalRegs
+    }
+    for (uint64_t i = 0; i < PhyReg_scalar; i++) {
+        scalar_reg_valid_bit.push_back(0);
     }
 }
 
