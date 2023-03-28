@@ -38,14 +38,12 @@
 VectorValidBit::VectorValidBit(VectorValidBitParams *p):
 SimObject(p), PhysicalRegs(p->PhysicalRegs)
 {
-    for (uint64_t i=0; i<32; i++)
-        {
-            reg_valid_bit.push_back(1);
-        }
-    for (uint64_t i=32; i<PhysicalRegs; i++)
-        {
-            reg_valid_bit.push_back(0);
-        }
+    for (uint64_t i=0; i<32; i++) {
+        reg_valid_bit.push_back(1);
+    }
+    for (uint64_t i=32; i<PhysicalRegs; i++) {
+        reg_valid_bit.push_back(0);
+    }
 }
 
 VectorValidBit::~VectorValidBit()

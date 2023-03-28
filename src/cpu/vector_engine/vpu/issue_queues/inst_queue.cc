@@ -118,26 +118,26 @@ InstQueue::evaluate()
             VectorArithQueueSlotsUsed = inst_queue_size;
         }
 
-        uint64_t src1=0;
-        uint64_t src2=0;
-        uint64_t src3=0;
-        uint64_t mask=0;
+        uint64_t src1 = 0;
+        uint64_t src2 = 0;
+        uint64_t src3 = 0;
+        uint64_t mask = 0;
 
-        bool masked_op=0;
-        bool vx_op=0;
-        bool vf_op=0;
-        bool vi_op=0;
-        bool mask_ready=0;
-        bool src1_ready=0;
-        bool src2_ready=0;
-        bool src3_ready=0;
-        bool srcs_ready=0;
+        bool masked_op = 0;
+        bool vx_op = 0;
+        bool vf_op = 0;
+        bool vi_op = 0;
+        bool mask_ready = 0;
+        bool src1_ready = 0;
+        bool src2_ready = 0;
+        bool src3_ready = 0;
+        bool srcs_ready = 0;
         QueueEntry * Instruction = Instruction_Queue.front();
         uint64_t queue_slot = 0;
 
         int queue_size = (OoO_queues) ? Instruction_Queue.size() : 1;
 
-        for (int i = 0 ; i < queue_size ; i++) {
+        for (int i = 0 ; i < queue_size; i++) {
             Instruction = Instruction_Queue[i];
 
             src1 = Instruction->dyn_insn->get_renamed_src1();
@@ -145,39 +145,41 @@ InstQueue::evaluate()
             src3 = Instruction->dyn_insn->get_renamed_old_dst();
             mask = Instruction->dyn_insn->get_renamed_mask();
 
-            masked_op = (Instruction->insn.vm()==0);
+            masked_op = (Instruction->insn.vm() == 0);
 
             //Instructions with Scalar operands set the src1_ready signal
-            vx_op = (Instruction->insn.func3()==4) || (Instruction->insn.func3()==6);
-            vf_op = (Instruction->insn.func3()==5);
-            vi_op = (Instruction->insn.func3()==3);
+            vx_op = (Instruction->insn.func3() == 4) ||
+            (Instruction->insn.func3() == 6);
+            vf_op = (Instruction->insn.func3() == 5);
+            vi_op = (Instruction->insn.func3() == 3);
 
             mask_ready = !masked_op || (masked_op && vectorwrapper->vector_reg_validbit->
                 get_preg_valid_bit(mask));
 
+            //Todo: read these ready judgement
             if ((Instruction->insn.arith2Srcs() ||
                 Instruction->insn.arith3Srcs()) && !( vx_op || vf_op || vi_op)) {
                 src1_ready = vectorwrapper->vector_reg_validbit->
                     get_preg_valid_bit(src1);
             }
             else {
-                src1_ready =1;
+                src1_ready = 1;
             }
 
-            if (Instruction->insn.arith1Src() ||
-                Instruction->insn.arith2Srcs() ||
-                Instruction->insn.arith3Srcs()){
+            //vfsqrt.v vd, vs2, vm   # Vector-vector square root for 1src
+            if (Instruction->insn.arith1Src() || Instruction->insn.arith2Srcs()
+            || Instruction->insn.arith3Srcs()) {
                 src2_ready = vectorwrapper->vector_reg_validbit->
                     get_preg_valid_bit(src2);
             } else {
-                src2_ready =1;
+                src2_ready = 1;
             }
 
             if (Instruction->insn.arith3Srcs()) {
                 src3_ready = vectorwrapper->vector_reg_validbit->
                     get_preg_valid_bit(src3);
             } else {
-                src3_ready =1;
+                src3_ready = 1;
             }
 
             srcs_ready = src1_ready && src2_ready && src3_ready &&
@@ -190,8 +192,7 @@ InstQueue::evaluate()
             }
         }
 
-        if (srcs_ready)
-        {
+        if (srcs_ready) {
             /*printing the issued instruction*/
             printArithInst(Instruction->insn,Instruction->dyn_insn);
             /*removing the instruction from the queue*/
@@ -205,9 +206,9 @@ InstQueue::evaluate()
                 // Setting the Valid Bit
                 bool wb_enable = !Instruction->insn.VectorToScalar();
                 uint64_t renamed_dst = Instruction->dyn_insn->get_renamed_dst();
-                if (wb_enable)
-                {
-                vectorwrapper->vector_reg_validbit->set_preg_valid_bit(renamed_dst,1);
+                if (wb_enable) {
+                    vectorwrapper->vector_reg_validbit->
+                    set_preg_valid_bit(renamed_dst,1);
                 }
                 //Setting the executed bit in the ROB
                 uint16_t rob_entry = Instruction->dyn_insn->get_rob_entry();
@@ -246,20 +247,18 @@ InstQueue::evaluate()
 
         bool isStore = 0;
         bool isLoad = 0;
-        uint64_t src3=0;
-        uint64_t src2=0;
-        uint8_t mop=0;
-        bool indexed_op=0;
-        uint64_t src_ready=0;
+        uint64_t src3 = 0;
+        uint64_t src2 = 0;
+        uint8_t mop = 0;
+        bool indexed_op = 0;
+        uint64_t src_ready = 0;
         bool ambiguous_dependency = 0;
 
         QueueEntry * Mem_Instruction = Memory_Queue.front();
         uint64_t queue_slot = 0;
         int queue_size = (OoO_queues) ? Memory_Queue.size() : 1;
         //int min = std::min(queue_size ,32);
-        for (int i=0 ; i< queue_size ; i++)
-        {
-
+        for (int i = 0;i < queue_size;i++) {
             Mem_Instruction = Memory_Queue[i];
             isLoad = Mem_Instruction->insn.isLoad();
             isStore = Mem_Instruction->insn.isStore();
@@ -270,23 +269,21 @@ InstQueue::evaluate()
 
             // If the instruction is indexed we stop looking for the next
             // instructions, check dependencies for indexed is too expensive
-            if ( (indexed_op || isStore) && i>0){
+            if ((indexed_op || isStore) && i > 0){
                 src_ready = 0;
                 break;
             }
 
             /*
-            // Improve it
-            if ((i!=0) && isLoad)
-            {
-            for (int j=i ; j>0 ; j--)
-                {
+            if ((i!=0) && isLoad) {//improve it
+            for (int j=i ; j>0 ; j--) {
                 QueueEntry *  Mem_Instruction_dep = Memory_Queue[j-1];
                 ambiguous_dependency = ambiguous_dependency |
                     (Mem_Instruction_dep->src1 == Mem_Instruction->src1);
                 delete Mem_Instruction_dep;
                 }
-            } */
+            }
+            */
 
             /* TODO : bug aqui ... debo evaluar bien los casos de indexed strided y unitstride ahora soportados*/
             src_ready = (isStore && !indexed_op) ?
@@ -322,9 +319,9 @@ InstQueue::evaluate()
                 bool wb_enable = !Mem_Instruction->insn.isStore();
                 uint64_t renamed_dst = Mem_Instruction->dyn_insn->get_renamed_dst();
                 // SETTING VALID BIT
-                if (wb_enable)
-                {
-                vectorwrapper->vector_reg_validbit->set_preg_valid_bit(renamed_dst,1);
+                if (wb_enable) {
+                    vectorwrapper->vector_reg_validbit->
+                    set_preg_valid_bit(renamed_dst,1);
                 }
 
                 //Setting the executed bit in the ROB
