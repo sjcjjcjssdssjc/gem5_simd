@@ -163,8 +163,7 @@ MemUnitWriteTiming::initialize(VectorEngine& vector_wrapper, uint64_t count,
     };
 
     writeFunction = [try_write,location,fin,xc,vaddr,vstride,vindexed,
-        on_item_store,SIZE,count,this](void) ->bool
-    {
+        on_item_store,SIZE,count,this](void) -> bool {
         //scratch and cache could use different line sizes
         uint64_t line_size;
         switch ((int)location) {
@@ -182,7 +181,7 @@ MemUnitWriteTiming::initialize(VectorEngine& vector_wrapper, uint64_t count,
         if (!vindexed) //no indexed operation
         {
             //we can always write 1 element
-            addr = vaddr + SIZE*(vstride*i);
+            addr = vaddr + SIZE * (vstride * i);
             line_addr = addr - (addr % line_size);
             consec_items = 1;
 

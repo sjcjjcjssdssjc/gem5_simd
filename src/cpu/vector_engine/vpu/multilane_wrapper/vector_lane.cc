@@ -172,7 +172,7 @@ VectorLane::issue(VectorEngine& vector_wrapper,
     arith3Srcs = insn.arith3Srcs();
     vector_to_scalar = insn.VectorToScalar();
 
-    scalar_reg = insn.vd();
+    scalar_reg = insn.vd();//could be rd
 
     this->Aread = 0;
     this->Bread = 0;
@@ -219,18 +219,22 @@ VectorLane::issue(VectorEngine& vector_wrapper,
                 else if (DATA_SIZE == 1)scalar_data = (uint64_t)((uint8_t*)ndata)[0];
                 else panic("Invalid option\n");
 
-                //move to rd
+                // move to rd
                 if (move_to_core_float) {
                     xc->setFloatRegOperandBits(
-                        dyn_insn->get_VectorStaticInst(), 0, scalar_data);
-                    DPRINTF(VectorLane, "Writting Float Register: %d ,data: 0x%x \n"
-                        , scalar_reg, scalar_data);
+                        dyn_insn->get_VectorStaticInst(),
+                        (uint64_t)dyn_insn->get_renamed_dst(), scalar_data);
+                    DPRINTF(VectorLane,
+                        "Writting Float Register: %d ,data: 0x%x \n"
+                        , (uint64_t)dyn_insn->get_renamed_dst(), scalar_data);
                 }
                 else if (move_to_core_int) {
                     xc->setIntRegOperand(
-                        dyn_insn->get_VectorStaticInst(), 0, scalar_data);
-                    DPRINTF(VectorLane, "Writting Int Register: %d ,data: 0x%x \n"
-                        , scalar_reg, scalar_data);
+                        dyn_insn->get_VectorStaticInst(),
+                        (uint64_t)dyn_insn->get_renamed_dst(), scalar_data);
+                    DPRINTF(VectorLane,
+                        "Writting Int Register: %d ,data: 0x%x \n"
+                        , (uint64_t)dyn_insn->get_renamed_dst(), scalar_data);
                 }
                 ++this->Bread;
 
@@ -309,9 +313,11 @@ VectorLane::issue(VectorEngine& vector_wrapper,
                     //only in-order cpus have exec context.
                     //so no arch regs for that kind of cpu.
                     xc->setIntRegOperand(
-                        dyn_insn->get_VectorStaticInst(), 0, scalar_data);
-                    DPRINTF(VectorLane, "Writting Int Register: %d ,data: 0x%x \n"
-                        , scalar_reg, scalar_data);
+                        dyn_insn->get_VectorStaticInst(),
+                        (uint64_t)dyn_insn->get_renamed_dst(), scalar_data);
+                    DPRINTF(VectorLane,
+                        "Writting Int Register: %d ,data: 0x%x \n"
+                        , (uint64_t)dyn_insn->get_renamed_dst(), scalar_data);
                     delete data;
                     this->occupied = false;
                     this->dataPath->stopTicking();
