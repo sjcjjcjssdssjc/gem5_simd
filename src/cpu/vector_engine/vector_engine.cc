@@ -314,9 +314,9 @@ VectorEngine::renameVectorInst(RiscvISA::VectorStaticInst& insn, VectorDynInst *
 {
     /*
      * The bigger LMUL value is 8, then for LMUL=8 it is needed to assign 8 physical registers
-     * for LMUL=4 it is needed to assign 4 physical registers
-     * for LMUL=2 it is needed to assign 2 physical registers
-     * for LMUL=1 it is needed to assign 1 physical register
+     * for LMUL = 4 it is needed to assign 4 physical registers
+     * for LMUL = 2 it is needed to assign 2 physical registers
+     * for LMUL = 1 it is needed to assign 1 physical register
      */
     uint64_t vd;
     uint64_t vs1,vs2,vs3;
@@ -377,17 +377,18 @@ VectorEngine::renameVectorInst(RiscvISA::VectorStaticInst& insn, VectorDynInst *
         vector_dyn_insn->set_renamed_old_dst(POldDst);
         vector_dyn_insn->set_renamed_src2(Pvs2);
 
-        /* When the instruction use an scalar value as source 1,
-         * the physical source 1 is disabled
-         * When the instruction uses only 1 source (insn.arith1Src()),
-         * the source 1 is disabled
+        /* When the instruction uses only 1 source (insn.arith1Src()),
+         * the source 1 is disabled, but why?
          */
         if (!(vx_op || vf_op || vi_op) && !insn.arith1Src()) {
             // Physical source 1
             Pvs1 = vector_rename->get_preg_rat(vs1);
             vector_dyn_insn->set_renamed_src1(Pvs1);
+        } else if (vx_op || vf_op || vi_op) {
+            Prs1 = vector_rename->get_preg_rat(vs1);//rs1/vs1
+            vector_dyn_insn->set_renamed_src1(Prs1);
         }
-        /* dst_write_ena is set when the instruction has a vector destination register */
+        // dst_write_ena set when instruction has a vector destination register
         if (dst_write_ena) {
             // Setting the New Destination in the RAT structure
             vector_rename->set_preg_rat(vd,PDst);
@@ -430,7 +431,7 @@ VectorEngine::dispatch(RiscvISA::VectorStaticInst& insn, ExecContextPtr& xc,
 
     /* Be sure that the instruction was added to some group in base.isa */
     if (insn.isVectorInstArith()) {
-        assert( insn.arith1Src() | insn.arith2Srcs() | insn.arith3Srcs() );
+        assert(insn.arith1Src() | insn.arith2Srcs() | insn.arith3Srcs());
     }
 
     if ((vector_inst_queue->Instruction_Queue.size()==0)
@@ -533,7 +534,7 @@ VectorEngine::VectorMemPort::VectorMemPort(const std::string& name,
     MasterPort(name, owner), owner(owner)
 {
     //create the queues for each of the channels to the Vector Cache
-    for (uint8_t i=0; i<channels; ++i) {
+    for (uint8_t i = 0; i<channels; ++i) {
         laCachePktQs.push_back(std::deque<PacketPtr>());
     }
 }

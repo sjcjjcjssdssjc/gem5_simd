@@ -241,7 +241,7 @@ private:
     uint64_t last_vl;
 
     /* lmul parameter */
-    uint8_t last_lmul=1;
+    uint8_t last_lmul = 1;
     /* Physical registers */
     uint64_t PDst;
     uint64_t POldDst;

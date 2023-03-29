@@ -225,16 +225,16 @@ VectorLane::issue(VectorEngine& vector_wrapper,
                         dyn_insn->get_VectorStaticInst(),
                         (uint64_t)dyn_insn->get_renamed_dst(), scalar_data);
                     DPRINTF(VectorLane,
-                        "Writting Float Register: %d ,data: 0x%x \n"
-                        , (uint64_t)dyn_insn->get_renamed_dst(), scalar_data);
+                        "Writting Float Register: %d ,data: 0x%x \n",
+                        (uint64_t)dyn_insn->get_renamed_dst(), scalar_data);
                 }
                 else if (move_to_core_int) {
                     xc->setIntRegOperand(
                         dyn_insn->get_VectorStaticInst(),
                         (uint64_t)dyn_insn->get_renamed_dst(), scalar_data);
                     DPRINTF(VectorLane,
-                        "Writting Int Register: %d ,data: 0x%x \n"
-                        , (uint64_t)dyn_insn->get_renamed_dst(), scalar_data);
+                        "Writting Int Register: %d ,data: 0x%x \n",
+                        (uint64_t)dyn_insn->get_renamed_dst(), scalar_data);
                 }
                 ++this->Bread;
 

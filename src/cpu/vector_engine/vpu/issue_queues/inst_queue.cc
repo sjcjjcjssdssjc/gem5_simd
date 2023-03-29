@@ -432,8 +432,7 @@ InstQueue::printArithInst(RiscvISA::VectorStaticInst& insn,VectorDynInst *vector
                     vector_dyn_insn->get_renamed_dst();
     uint32_t POldDst = vector_dyn_insn->get_renamed_old_dst();
     //rs1 for vx,vf,vi
-    uint32_t Pvs1 = (vx_op || vf_op || vi_op) ? insn.vs1() :
-                    vector_dyn_insn->get_renamed_src1();
+    uint32_t Pvs1 = vector_dyn_insn->get_renamed_src1();
     uint32_t Pvs2 = vector_dyn_insn->get_renamed_src2();
     uint32_t PMask = vector_dyn_insn->get_renamed_mask();
 
