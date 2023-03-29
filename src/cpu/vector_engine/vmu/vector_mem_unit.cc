@@ -61,7 +61,7 @@ bool VectorMemUnit::isOccupied()
 
 void VectorMemUnit::issue(VectorEngine& vector_wrapper,
     RiscvISA::VectorStaticInst& insn,VectorDynInst *dyn_insn,
-    ExecContextPtr& xc, uint64_t src1,uint64_t src2,uint64_t vtype,
+    ExecContextPtr& xc,uint64_t src1,uint64_t src2,uint64_t vtype,
     uint64_t vl,std::function<void(Fault fault)> done_callback)
 {
     /* Note:
@@ -94,22 +94,22 @@ void VectorMemUnit::issue(VectorEngine& vector_wrapper,
 
     vectorwrapper = &vector_wrapper;
 
-    uint64_t vl_count = vl ;
+    uint64_t vl_count = vl;
     uint64_t vsew = vectorwrapper->vector_config->get_vtype_sew(vtype);
 
     /* destination data type size in bytes */
-    uint8_t DST_SIZE = vsew/8;
+    uint8_t DST_SIZE = vsew / 8;
     assert(DST_SIZE != 0);
 
     uint8_t mop = insn.mop();
     bool indexed = (mop == 3);
     bool strided = (mop == 2);
-    uint64_t stride =  (strided) ? src2:1;
+    uint64_t stride =  (strided) ? src2 : 1;
 
     std::stringstream mem_mop;
-    if (indexed) { mem_mop << "indexed"; } 
-    else if (strided) { mem_mop << "strided (" << stride <<")"; }
-    else { mem_mop << " "; }
+    if (indexed) mem_mop << "indexed";
+    else if (strided) mem_mop << "strided (" << stride << ")";
+    else mem_mop << " ";
 
     //If vl_count == 0 then callback, means that the VL = 0
     if (vl_count == 0) {
@@ -118,28 +118,25 @@ void VectorMemUnit::issue(VectorEngine& vector_wrapper,
         return;
     }
 
-    uint64_t mem_addr0;
-    bool  location0;
-    uint64_t mem_addr;
-    bool  location;
+    uint64_t mem_addr0, mem_addr;
+    bool location0, location;
 
-    uint64_t mvl_bits =
-        vectorwrapper->vector_config->get_max_vector_length_bits(vtype);
-    uint64_t mvl_elem =
-        vectorwrapper->vector_config->get_max_vector_length_elem(vtype);
+    uint64_t mvl_bits = vectorwrapper->vector_config->
+    get_max_vector_length_bits(vtype);
+    uint64_t mvl_elem = vectorwrapper->vector_config->
+    get_max_vector_length_elem(vtype);
 
     if (insn.isLoad())
     {
-        
         mem_addr0 = (uint64_t)dyn_insn->get_renamed_dst() * mvl_bits / 8;
         location0 = 1; // 1 Vecor Register
 
         DPRINTF(VectorMemUnit,"Vector Load %s to Register v%d, vl:%lu\n",
-        mem_mop.str(),dyn_insn->get_renamed_dst() ,vl_count);
+        mem_mop.str(),dyn_insn->get_renamed_dst(),vl_count);
 
         //NOTE: need to initialize the writer BEFORE the reader!
         memWriter->initialize(vector_wrapper,mvl_elem,DST_SIZE,mem_addr0,
-            0,1,location0, xc,[done_callback,this](bool done){
+            0,1,location0,xc,[done_callback,this](bool done){
             if (done) {
                 this->occupied = false;
                 done_callback(NoFault);
@@ -149,61 +146,62 @@ void VectorMemUnit::issue(VectorEngine& vector_wrapper,
         mem_addr = src1;
         location = 0;
         DPRINTF(VectorMemUnit,"Vector Load %s from Base Memory Addrs: 0x%lx\n",
-             mem_mop.str(),mem_addr );
+             mem_mop.str(),mem_addr);
 
-        if (indexed)
-        {
-            uint64_t mem_addr1 = (uint64_t)dyn_insn->get_renamed_src2() * mvl_bits/8;
+        // 0-3: unit-stride, indexed-unordered, strided, indexed-ordered
+        // indexed is indexed-ordered ONLY
+        if (indexed) {
+            uint64_t mem_addr1 = (uint64_t)dyn_insn->get_renamed_src2();
+            mem_addr1 = mem_addr1 * mvl_bits / 8;
+
             DPRINTF(VectorMemUnit,"Vector Load Index from Vs2 Reg Addrs: "
-                "0x%lx\n",mem_addr1 );
-            memReader_addr->initialize(vector_wrapper,vl_count, DST_SIZE,mem_addr1,
-            0,1,location0,xc,[DST_SIZE,this]
-            (uint8_t*data, uint8_t size, bool done)
-            {
+                "0x%lx\n", mem_addr1);
+            memReader_addr->initialize(vector_wrapper,vl_count,
+            DST_SIZE,mem_addr1,0,1,location0,xc,[DST_SIZE,this]
+            (uint8_t * data, uint8_t size, bool done) {
                 uint8_t *ndata = new uint8_t[DST_SIZE];
                 memcpy(ndata, data, DST_SIZE);
-                if (DST_SIZE==8) {
+                if (DST_SIZE == 8) {
                     DPRINTF(VectorMemUnit,"queue Data index addr 0x%x \n",
-                        *(uint64_t *) ndata );
+                        *(uint64_t *)ndata);
                 }
-                if (DST_SIZE==4) {
+                if (DST_SIZE == 4) {
                     DPRINTF(VectorMemUnit,"queue Data index addr 0x%x \n",
-                        *(uint32_t *) ndata );
+                        *(uint32_t *)ndata);
                 }
-                if (DST_SIZE==2) {
+                if (DST_SIZE == 2) {
                     DPRINTF(VectorMemUnit,"queue Data index addr 0x%x \n",
-                        *(uint16_t *) ndata );
+                        *(uint16_t *)ndata);
                 }
-                if (DST_SIZE==1) {
+                if (DST_SIZE == 1) {
                     DPRINTF(VectorMemUnit,"queue Data index addr 0x%x \n",
-                        *(uint8_t *) ndata );
+                        *(uint8_t *)ndata);
                 }
                 this->memReader->queueData(ndata);
                 delete[] data;
             });
         }
 
-        memReader->initialize(vector_wrapper,vl_count, DST_SIZE,mem_addr,
-        mop,stride,location, xc,[mvl_elem,vl_count,DST_SIZE,this]
-            (uint8_t*data, uint8_t size, bool done)
-        {
+        memReader->initialize(vector_wrapper,vl_count,DST_SIZE,mem_addr,
+        mop,stride,location,xc,[mvl_elem,vl_count,DST_SIZE,this]
+            (uint8_t*data, uint8_t size, bool done) {
             uint8_t *ndata = new uint8_t[DST_SIZE];
             memcpy(ndata, data, DST_SIZE);
             if (DST_SIZE==8) {
                 DPRINTF(VectorMemUnit,"queue Data 0x%x \n",
-                    *(uint64_t *) ndata );
+                    *(uint64_t *) ndata);
             }
             if (DST_SIZE==4) {
                 DPRINTF(VectorMemUnit,"queue Data 0x%x \n"
-                ,*(uint32_t *) ndata );
+                ,*(uint32_t *) ndata);
             }
             if (DST_SIZE==2) {
                 DPRINTF(VectorMemUnit,"queue Data 0x%x \n"
-                ,*(uint16_t *) ndata );
+                ,*(uint16_t *) ndata);
             }
             if (DST_SIZE==1) {
                 DPRINTF(VectorMemUnit,"queue Data 0x%x \n"
-                ,*(uint8_t *) ndata );
+                ,*(uint8_t *) ndata);
             }
             this->memWriter->queueData(ndata);
             delete[] data;

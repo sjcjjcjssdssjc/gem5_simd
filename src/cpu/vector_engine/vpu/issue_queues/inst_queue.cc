@@ -102,14 +102,16 @@ InstQueue::regStats()
 void
 InstQueue::evaluate()
 {
-    if ((Instruction_Queue.size() == 0) && (Memory_Queue.size() == 0)) {
+    if ((Instruction_Queue.size() == 0)
+        && (Memory_Queue.size() == 0)) {
         stopTicking();
         DPRINTF(InstQueue,"Instruction Queue can not Issue more instructions"
             " because is empty \n");
         return;
     }
 
-    if (Instruction_Queue.size() !=0 && vectorwrapper->cluster_available()) {
+    if (Instruction_Queue.size() != 0
+       && vectorwrapper->cluster_available()) {
         /* For statistics */
         int inst_queue_size = Instruction_Queue.size();
         if ((double)inst_queue_size > VectorArithQueueSlotsUsed.value()) {
@@ -146,8 +148,8 @@ InstQueue::evaluate()
             masked_op = (Instruction->insn.vm() == 0);
 
             //Instructions with Scalar operands set the src1_ready signal
-            vx_op = (Instruction->insn.func3() == 4) ||
-            (Instruction->insn.func3() == 6);
+            vx_op = (Instruction->insn.func3() == 4)
+            || (Instruction->insn.func3() == 6);
             vf_op = (Instruction->insn.func3() == 5);
             vi_op = (Instruction->insn.func3() == 3);
 
@@ -209,8 +211,8 @@ InstQueue::evaluate()
                     set_preg_valid_bit(renamed_dst, 1);
                 }
                 //Setting the executed bit in the ROB
-                uint16_t rob_entry = Instruction->dyn_insn->get_rob_entry();
-                vectorwrapper->vector_rob->set_rob_entry_executed(rob_entry);
+                uint16_t rob_num = Instruction->dyn_insn->get_rob_num();
+                vectorwrapper->vector_rob->set_rob_entry_executed(rob_num);
 
                 DPRINTF(InstQueue,"Executed instruction %s\n",
                     Instruction->insn.getName());
@@ -323,10 +325,10 @@ InstQueue::evaluate()
                     }
 
                     // Setting the executed bit in the ROB
-                    uint16_t rob_entry =
-                    Mem_Instruction->dyn_insn->get_rob_entry();
+                    uint16_t rob_num =
+                    Mem_Instruction->dyn_insn->get_rob_num();
                     vectorwrapper->vector_rob->
-                    set_rob_entry_executed(rob_entry);
+                    set_rob_entry_executed(rob_num);
 
                     DPRINTF(InstQueue,"Executed instruction %s\n",
                         Mem_Instruction->insn.getName());
@@ -412,10 +414,10 @@ void
 InstQueue::printArithInst(RiscvISA::VectorStaticInst& insn,VectorDynInst *vector_dyn_insn)
 {
     uint64_t pc = insn.getPC();
-    bool masked_op = (insn.vm()==0);
-    bool vx_op = (insn.func3()==4) || (insn.func3()==6);
-    bool vf_op = (insn.func3()==5);
-    bool vi_op = (insn.func3()==3);
+    bool masked_op = (insn.vm() == 0);
+    bool vx_op = (insn.func3() == 4) || (insn.func3() == 6);
+    bool vf_op = (insn.func3() == 5);
+    bool vi_op = (insn.func3() == 3);
 
     std::string masked;
     if(masked_op) {masked = "v0.m";} else {masked = "   ";}

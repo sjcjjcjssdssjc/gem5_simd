@@ -328,7 +328,6 @@ VectorEngine::renameVectorInst(RiscvISA::VectorStaticInst& insn, VectorDynInst *
     vs3 = insn.vs3();
 
     rs1 = insn.rs1();
-    //strided
     rs2 = insn.rs2();
 
     masked_op = (insn.vm() == 0);
@@ -343,11 +342,15 @@ VectorEngine::renameVectorInst(RiscvISA::VectorStaticInst& insn, VectorDynInst *
 
     if (insn.isVectorInstMem()) {
         // TODO: maked memory operations are not implemented
+        // NO SCALAR RD FOR LOADS.
         if (insn.isLoad()) {
             // indexed: vs2 stores offsets strided: rs2 stores stride
-            // NO RD FOR LOADS.
+            Prs1 = Prs2 = 1024;
+            if (strided) {
+                Prs1 = vector_rename->get_preg_ratscalar(rs1);
+                Prs2 = vector_rename->get_preg_ratscalar(rs2);
+            }
             Pvs2 = (indexed) ? vector_rename->get_preg_rat(vs2) : 1024;
-            Prs2 = (strided) ? vector_rename->get_preg_ratscalar(rs2) : 1024;
             PMask = masked_op ? vector_rename->get_preg_rat(0) : 1024;
             PDst = vector_rename->get_frl();
             POldDst = vector_rename->get_preg_rat(vd);
@@ -356,13 +359,17 @@ VectorEngine::renameVectorInst(RiscvISA::VectorStaticInst& insn, VectorDynInst *
             vector_dyn_insn->set_renamed_mask(PMask);
             vector_dyn_insn->set_renamed_dst(PDst);
             vector_dyn_insn->set_renamed_old_dst(POldDst);
+
             vector_rename->set_preg_rat(vd,PDst);
-            vector_reg_validbit->set_preg_valid_bit(PDst,0);
-            // Todo: rs1
-        }
-        else if (insn.isStore()) {
-            // TODO: rs1
+            vector_reg_validbit->set_preg_valid_bit(PDst, 0);
+        } else if (insn.isStore()) {
+            // TODO: rs1,rs2
             // Physical  source 3 used to hold the data to store in memory
+            Prs1 = Prs2 = 1024;
+            if (strided) {
+                Prs1 = vector_rename->get_preg_ratscalar(rs1);
+                Prs2 = vector_rename->get_preg_ratscalar(rs2);
+            }
             Pvs2 = (indexed) ? vector_rename->get_preg_rat(vs2) : 1024;
             Pvs3 = vector_rename->get_preg_rat(vs3);
             PMask = masked_op ? vector_rename->get_preg_rat(0) :1024;
@@ -383,9 +390,6 @@ VectorEngine::renameVectorInst(RiscvISA::VectorStaticInst& insn, VectorDynInst *
         vector_dyn_insn->set_renamed_old_dst(POldDst);
         vector_dyn_insn->set_renamed_src2(Pvs2);
 
-        /* When the instruction uses only 1 source (insn.arith1Src()),
-         * the source 1 is disabled, but why?
-         */
         if (!(vx_op || vf_op || vi_op) && !insn.arith1Src()) {
             // Physical source 1
             Pvs1 = vector_rename->get_preg_rat(vs1);
@@ -458,9 +462,10 @@ VectorEngine::dispatch(RiscvISA::VectorStaticInst& insn, ExecContextPtr& xc,
 
     if (insn.isVectorInstMem()) {
         dependencie_callback();
-        uint32_t rob_entry = vector_rob->set_rob_entry(
-            vector_dyn_insn->get_renamed_old_dst(), insn.isLoad());
-        vector_dyn_insn->set_rob_entry(rob_entry);
+        uint32_t rob_entry = vector_rob->
+        set_rob_entry(vector_dyn_insn->get_renamed_old_dst(),
+                      insn.isLoad(), 0);
+        vector_dyn_insn->set_rob_num(rob_entry);
         vector_inst_queue->Memory_Queue.push_back(
             new InstQueue::QueueEntry(insn,vector_dyn_insn,xc,
                 NULL,src1,src2,last_vtype,last_vl));
@@ -469,18 +474,20 @@ VectorEngine::dispatch(RiscvISA::VectorStaticInst& insn, ExecContextPtr& xc,
     else if (insn.isVectorInstArith()) {
         if (dst_write_ena) {
             dependencie_callback();
+            bool to_scalar = insn.VectorToScalar();
             uint32_t rob_entry = vector_rob->set_rob_entry(
-                vector_dyn_insn->get_renamed_old_dst() , 1);
-            vector_dyn_insn->set_rob_entry(rob_entry);
+                vector_dyn_insn->get_renamed_old_dst(), 1,
+                to_scalar);
+            vector_dyn_insn->set_rob_num(rob_entry);
             vector_inst_queue->Instruction_Queue.push_back(
-                new InstQueue::QueueEntry(insn,vector_dyn_insn,xc,
-                NULL,src1,src2,last_vtype,last_vl));
+            new InstQueue::QueueEntry(insn,vector_dyn_insn,xc,
+            NULL,src1,src2,last_vtype,last_vl));
         } else {
-            uint32_t rob_entry = vector_rob->set_rob_entry(0 , 0);
-            vector_dyn_insn->set_rob_entry(rob_entry);
+            uint32_t rob_entry = vector_rob->set_rob_entry(0, 0, 0);
+            vector_dyn_insn->set_rob_num(rob_entry);
             vector_inst_queue->Instruction_Queue.push_back(
-                new InstQueue::QueueEntry(insn,vector_dyn_insn,xc,
-                dependencie_callback,src1,src2,last_vtype,last_vl));
+            new InstQueue::QueueEntry(insn,vector_dyn_insn,xc,
+            dependencie_callback,src1,src2,last_vtype,last_vl));
         }
         printArithInst(insn,vector_dyn_insn);
     } else {
@@ -490,7 +497,7 @@ VectorEngine::dispatch(RiscvISA::VectorStaticInst& insn, ExecContextPtr& xc,
 
 void
 VectorEngine::issue(RiscvISA::VectorStaticInst& insn,VectorDynInst *dyn_insn,
-    ExecContextPtr& xc ,uint64_t src1 ,uint64_t src2,uint64_t vtype,
+    ExecContextPtr& xc,uint64_t src1,uint64_t src2,uint64_t vtype,
     uint64_t vl, std::function<void(Fault fault)> done_callback) {
 
     uint64_t pc = insn.getPC();
@@ -501,7 +508,7 @@ VectorEngine::issue(RiscvISA::VectorStaticInst& insn,VectorDynInst *dyn_insn,
         DPRINTF(VectorEngine,"Sending instruction %s to VMU, pc 0x%lx\n"
             ,insn.getName(), *(uint64_t*)&pc);
         // done_callback is write back.
-        vector_memory_unit->issue(*this,insn,dyn_insn, xc,src1,src2,vtype,
+        vector_memory_unit->issue(*this,insn,dyn_insn,xc,src1,src2,vtype,
             vl, done_callback);
 
         SumVL = SumVL.value() + vector_config->vector_length_in_bits(vl,vtype);
@@ -518,7 +525,7 @@ VectorEngine::issue(RiscvISA::VectorStaticInst& insn,VectorDynInst *dyn_insn,
         DPRINTF(VectorEngine,"Sending instruction %s to Lanes, pc 0x%lx\n",
             insn.getName(), *(uint64_t*)&pc);
         // done_callback is write back.
-        vector_lane[lane_id_available]->issue(*this,insn,dyn_insn, xc, src1,
+        vector_lane[lane_id_available]->issue(*this,insn,dyn_insn,xc,src1,
             vtype, vl,done_callback);
     } else {
         panic("Invalid Vector Instruction, insn=%#h\n", insn.machInst);
@@ -637,7 +644,7 @@ VectorEngine::VectorMemPort::startTranslation(Addr addr, uint8_t *data,
 
         if (!sendTimingReq(pkt)) {
             laCachePktQs[channel].push_back(pkt);
-            }
+        }
 
         delete translation;
         return true;

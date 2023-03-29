@@ -120,7 +120,7 @@ MemUnitReadTiming::initialize(VectorEngine& vector_wrapper, uint64_t count,
         count,on_item_load,xc,fin,this]() {
         std::vector<uint64_t> line_offsets;
 
-        //scratch and cache could use different line sizes
+        // scratch and cache could use different line sizes
         uint64_t line_size;
         switch ((int)location) {
             case 0: line_size = cacheLineSize; break;
@@ -133,10 +133,9 @@ MemUnitReadTiming::initialize(VectorEngine& vector_wrapper, uint64_t count,
         uint64_t addr;//first addr
         uint64_t i = this->vecIndex;
 
-        if (mop != 3) //no indexed operation
+        if (mop != 3)
         {
-            //we can always read the first item
-            //SIZE is DST_SIZE
+            //Unit stride or strided
             addr = vaddr + SIZE * (i * vstride);
             line_addr = addr - (addr % line_size);
             line_offsets.push_back(addr % line_size);
@@ -146,7 +145,6 @@ MemUnitReadTiming::initialize(VectorEngine& vector_wrapper, uint64_t count,
             for (uint8_t j = 1; j < (line_size / SIZE) && (i + j) < count; ++j) {
                 uint64_t next_addr = vaddr + SIZE * ((i + j) * vstride);
                 uint64_t next_line_addr = next_addr - (next_addr % line_size);
-
                 if (next_line_addr == line_addr) {//first_line_addr
                     items_in_line += 1;
                     line_offsets.push_back(next_addr % line_size);
@@ -155,7 +153,6 @@ MemUnitReadTiming::initialize(VectorEngine& vector_wrapper, uint64_t count,
                 }
             }
         } else { //indexed operation
-
             uint64_t can_get = this->dataQ.size();
             if (!can_get) {
                 DPRINTF(MemUnitReadTiming, "try_read dataQ Addrs empty\n");

@@ -193,21 +193,25 @@ VectorLane::issue(VectorEngine& vector_wrapper,
          * move_to_core refers to the instructions only read the first
          * element of some vector register and send immediately to
          * the scalar reg,such as vfmv_fs and vmv_xs
+         * The vfmv.f.s instruction copies a single SEW-wide element
+         * from index 0 of the source vector register to a
+         * destination scalar floating-point register.
          */
-        //The vfmv.f.s instruction copies a single SEW-wide element from index 0 
-        //of the source vector register to a destination scalar floating-point register.
-        
-        if (insn.getName() == "vext_xv") { //deprecated in vector 1.0
-            addr_src2 = ((uint64_t)dyn_insn->get_renamed_src2() * mvl_bits / 8) + (src1 * DATA_SIZE);
-            DPRINTF(VectorLane, "vext_xv: base addrs 0x%x , element addrs 0x%x, src1 %d\n",
-                        ((uint64_t)dyn_insn->get_renamed_src2() * mvl_bits / 8), addr_src2,src1);
+
+        if (insn.getName() == "vext_xv") {
+            addr_src2 = ((uint64_t)dyn_insn->get_renamed_src2() * mvl_bits / 8)
+            + (src1 * DATA_SIZE);
+            DPRINTF(VectorLane, "vext_xv: base addrs 0x%x , \\
+                    element addrs 0x%x, src1 %d\n", ((uint64_t)dyn_insn->
+                    get_renamed_src2() * mvl_bits / 8),
+                    addr_src2,src1);
         }
         
 
         //vfmv.f.s rd, vs2  # f[rd] = vs2[0] (rs1=0):vs2
         srcBReader->initialize(vector_wrapper, 1, DATA_SIZE, addr_src2, 0, 1, location,
             xc, [dyn_insn, done_callback, xc, DATA_SIZE, vl_count, move_to_core_int, move_to_core_float, this]
-            (uint8_t* data, uint8_t size, bool done) { 
+            (uint8_t* data, uint8_t size, bool done) {
                 //on_item_load
                 assert(size == DATA_SIZE);
                 uint8_t* ndata = new uint8_t[DATA_SIZE];
@@ -219,7 +223,6 @@ VectorLane::issue(VectorEngine& vector_wrapper,
                 else if (DATA_SIZE == 1)scalar_data = (uint64_t)((uint8_t*)ndata)[0];
                 else panic("Invalid option\n");
 
-                // move to rd
                 if (move_to_core_float) {
                     xc->setFloatRegOperandBits(
                         dyn_insn->get_VectorStaticInst(),
