@@ -52,6 +52,7 @@ public:
     ~VectorRename();
 
     const uint64_t PhysicalRegs;
+    const uint64_t AdditionalRegs;
     const uint64_t PhysicalRegs_scalar = 32;
     const uint64_t LogicalRegs = 32;
 

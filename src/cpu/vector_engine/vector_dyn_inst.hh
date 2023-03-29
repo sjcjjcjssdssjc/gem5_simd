@@ -52,23 +52,23 @@ VectorDynInst() : vinst(NULL),
   void set_renamed_src1(uint16_t val)  { renamed_src1 = val; }
 
   uint16_t get_renamed_src2() { return renamed_src2; }
-  void set_renamed_src2(uint16_t val) { renamed_src2  = val; }
+  void set_renamed_src2(uint16_t val) { renamed_src2 = val; }
 
   uint16_t get_renamed_src3() { return renamed_src3; }
-  void set_renamed_src3(uint16_t val) { renamed_src3  = val; }
+  void set_renamed_src3(uint16_t val) { renamed_src3 = val; }
 
   uint16_t get_renamed_dst() { return renamed_dst; }
-  void set_renamed_dst(uint16_t val) { renamed_dst  = val; }
+  void set_renamed_dst(uint16_t val) { renamed_dst = val; }
 
   uint16_t get_renamed_old_dst() { return renamed_old_dst; }
-  void set_renamed_old_dst(uint16_t val) { renamed_old_dst  = val; }
+  void set_renamed_old_dst(uint16_t val) { renamed_old_dst = val; }
 
   uint16_t get_renamed_mask() { return renamed_mask; }
-  void set_renamed_mask(uint16_t val) { renamed_mask  = val; }
+  void set_renamed_mask(uint16_t val) { renamed_mask = val; }
 
   // rob_entry
   uint16_t get_rob_entry() { return rob_entry; }
-  void set_rob_entry(uint16_t val) { rob_entry  = val; }
+  void set_rob_entry(uint16_t val) { rob_entry = val; }
 
   RiscvISA::VectorStaticInst*
   get_VectorStaticInst() {

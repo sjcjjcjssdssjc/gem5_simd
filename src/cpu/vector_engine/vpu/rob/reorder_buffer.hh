@@ -55,6 +55,7 @@ public:
         uint16_t old_dst;
         bool valid_old_dst;
         bool executed;
+        bool rename_scalar;
     };
 
     ReorderBuffer(ReorderBufferParams *p);

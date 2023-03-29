@@ -143,6 +143,10 @@ public:
       virtual RegIndex vs2() const = 0;
       virtual RegIndex vs3() const = 0;
       virtual RegIndex vd() const = 0;
+
+      virtual RegIndex rs1() const = 0;
+      virtual RegIndex rs2() const = 0;
+      virtual RegIndex rd() const = 0;
       /* the PC of the instruction*/
       uint64_t getPC() { return pc; }
       void setPC(uint64_t program_counter) { pc = program_counter; }
@@ -186,6 +190,10 @@ class RiscvVectorInsn : public VectorStaticInst
   RegIndex vs2()             const override { return (RegIndex)x(20, 5); }
   RegIndex vs3()             const override { return (RegIndex)x(7, 5); }
   RegIndex vd()              const override { return (RegIndex)x(7, 5); }
+
+  RegIndex rs1()             const override { return (RegIndex)x(15, 5); }
+  RegIndex rs2()             const override { return (RegIndex)x(20, 5); }
+  RegIndex rd()              const override { return (RegIndex)x(7, 5); }
 
   bool isFP()                const  override   { return ((func3()==1) || (func3()==5)) && !isConvert(); }
   bool isInt()               const  override   { return ((func3()==0) || (func3()==2) || (func3()==3) || (func3()==4) || (func3()==6)) && !is_slide(); }

@@ -41,14 +41,19 @@
  *  Vector Renaming
  */
 VectorRename::VectorRename(VectorRenameParams *p) :
-SimObject(p), PhysicalRegs(p->PhysicalRegs)
+SimObject(p), PhysicalRegs(p->PhysicalRegs),
+AdditionalRegs(p->AdditionalRegs)
 {
     DPRINTF(VectorRename, "Created the Renaming Unit object \n");
     for (uint64_t i = 32; i < PhysicalRegs; i++) {
         frl_mem.push_back(i);
     }
-    for (uint64_t i = 0; i < 32; i++) {
+    for (uint64_t i = PhysicalRegs_scalar;
+        i < PhysicalRegs_scalar + AdditionalRegs; i++) {
         frl_scalar.push_back(i);
+    }
+
+    for (uint64_t i = 0; i < PhysicalRegs_scalar; i++) {
         rat_scalar[i] = i;
     }
     for (uint64_t i = 0; i < LogicalRegs; i++) {

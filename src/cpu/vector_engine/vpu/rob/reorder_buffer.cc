@@ -130,16 +130,18 @@ ReorderBuffer::rob_empty()
 }
 
 uint32_t
-ReorderBuffer::set_rob_entry(uint32_t old_dst, bool valid_old_dst)
+ReorderBuffer::set_rob_entry(uint32_t old_dst, bool valid_old_dst,
+                            bool rename_scalar)
 {
     assert(valid_elements < ROB_Size);
 
     rob[tail]->old_dst = old_dst;
     rob[tail]->valid_old_dst = valid_old_dst;
     rob[tail]->executed = 0;
+    rob[tail]->rename_scalar = rename_scalar;
     uint32_t return_tail = tail;
     if (valid_old_dst) {
-        DPRINTF(ReorderBuffer,"Setting the ROB entry %d  with an old dst %d \n"
+        DPRINTF(ReorderBuffer,"Setting the ROB entry %d with an old dst %d \n"
             ,tail,old_dst);
     } else {
         DPRINTF(ReorderBuffer,"Setting the ROB entry %d without old dst %d \n"

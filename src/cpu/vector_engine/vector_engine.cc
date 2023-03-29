@@ -320,10 +320,16 @@ VectorEngine::renameVectorInst(RiscvISA::VectorStaticInst& insn, VectorDynInst *
      */
     uint64_t vd;
     uint64_t vs1,vs2,vs3;
+    uint64_t rs1,rs2;
+
     vd = insn.vd();
     vs1 = insn.vs1();
     vs2 = insn.vs2();
     vs3 = insn.vs3();
+
+    rs1 = insn.rs1();
+    //strided
+    rs2 = insn.rs2();
 
     masked_op = (insn.vm() == 0);
 
@@ -333,37 +339,37 @@ VectorEngine::renameVectorInst(RiscvISA::VectorStaticInst& insn, VectorDynInst *
 
     uint8_t mop = insn.mop();
     bool indexed = (mop == 3);
+    bool strided = (mop == 2);
 
     if (insn.isVectorInstMem()) {
         // TODO: maked memory operations are not implemented
         if (insn.isLoad()) {
-            /* Physical  source 2 used to hold the index values */
+            // indexed: vs2 stores offsets strided: rs2 stores stride
+            // NO RD FOR LOADS.
             Pvs2 = (indexed) ? vector_rename->get_preg_rat(vs2) : 1024;
-            vector_dyn_insn->set_renamed_src2(Pvs2);
-            /* Physical  Mask */
-            PMask = masked_op ? vector_rename->get_preg_rat(0) :1024;
-            vector_dyn_insn->set_renamed_mask(PMask);
-            /* Physical Destination */
+            Prs2 = (strided) ? vector_rename->get_preg_ratscalar(rs2) : 1024;
+            PMask = masked_op ? vector_rename->get_preg_rat(0) : 1024;
             PDst = vector_rename->get_frl();
-            vector_dyn_insn->set_renamed_dst(PDst);
-            /* Physical Old Destination */
             POldDst = vector_rename->get_preg_rat(vd);
+
+            vector_dyn_insn->set_renamed_src2(indexed ? Pvs2 : Prs2);
+            vector_dyn_insn->set_renamed_mask(PMask);
+            vector_dyn_insn->set_renamed_dst(PDst);
             vector_dyn_insn->set_renamed_old_dst(POldDst);
-            /* Setting the New Destination in the RAT structure */
             vector_rename->set_preg_rat(vd,PDst);
-            /* Setting to 0 the new physical destinatio valid bit*/
             vector_reg_validbit->set_preg_valid_bit(PDst,0);
+            // Todo: rs1
         }
         else if (insn.isStore()) {
-            /* Physical  source 2 used to hold the index values */
+            // TODO: rs1
+            // Physical  source 3 used to hold the data to store in memory
             Pvs2 = (indexed) ? vector_rename->get_preg_rat(vs2) : 1024;
-            vector_dyn_insn->set_renamed_src2(Pvs2);
-            /* Physical  Mask */
-            PMask = masked_op ? vector_rename->get_preg_rat(0) :1024;
-            vector_dyn_insn->set_renamed_mask(PMask);
-            /* Physical  source 3 used to hold the data to store in memory */
             Pvs3 = vector_rename->get_preg_rat(vs3);
+            PMask = masked_op ? vector_rename->get_preg_rat(0) :1024;
+
+            vector_dyn_insn->set_renamed_src2(Pvs2);
             vector_dyn_insn->set_renamed_src3(Pvs3);
+            vector_dyn_insn->set_renamed_mask(PMask);
         }
     }
     else if (insn.isVectorInstArith()) {
@@ -385,9 +391,10 @@ VectorEngine::renameVectorInst(RiscvISA::VectorStaticInst& insn, VectorDynInst *
             Pvs1 = vector_rename->get_preg_rat(vs1);
             vector_dyn_insn->set_renamed_src1(Pvs1);
         } else if (vx_op || vf_op || vi_op) {
-            Prs1 = vector_rename->get_preg_rat(vs1);//rs1/vs1
+            Prs1 = vector_rename->get_preg_ratscalar(rs1);
             vector_dyn_insn->set_renamed_src1(Prs1);
         }
+
         // dst_write_ena set when instruction has a vector destination register
         if (dst_write_ena) {
             // Setting the New Destination in the RAT structure
