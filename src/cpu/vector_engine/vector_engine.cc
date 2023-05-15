@@ -64,7 +64,7 @@ last_vtype(0),
 last_vl(0)
 {
     //create independent ports
-    for (uint8_t i=0; i< p->vector_rf_ports; ++i) {
+    for (uint8_t i=0; i < p->vector_rf_ports; ++i) {
         VectorRegMasterIds.push_back(p->system->getMasterId(this, name()
             + ".vector_reg" + std::to_string(i)));
         VectorRegPorts.push_back(VectorRegPort(name()

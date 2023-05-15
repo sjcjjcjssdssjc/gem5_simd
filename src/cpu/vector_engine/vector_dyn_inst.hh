@@ -67,7 +67,7 @@ VectorDynInst() : vinst(NULL),
   void set_renamed_mask(uint16_t val) { renamed_mask = val; }
 
   // rob_entry
-  uint16_t set_rob_num() { return rob_entry; }
+  uint16_t get_rob_num() { return rob_entry; }
   void set_rob_num(uint16_t val) { rob_entry = val; }
 
   RiscvISA::VectorStaticInst*

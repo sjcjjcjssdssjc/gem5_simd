@@ -59,8 +59,8 @@ public:
 protected:
     //bool occupied;
     const uint64_t PhysicalRegs;
-    const uint64_t AdditionalRegs;
     const uint64_t PhyReg_scalar;
+    const uint64_t AdditionalRegs;
 
 /*    class validbit_queue {
           public:
@@ -78,8 +78,11 @@ protected:
     std::vector<int> reg_valid_bit;
     std::vector<int> scalar_reg_valid_bit;
 public:
+    int get_pscalar_reg_valid_bit(int idx);
     int get_preg_valid_bit(int idx);
-    void set_preg_valid_bit(int idx , int val);
+
+    void set_pscalar_reg_valid_bit(int idx, int val);
+    void set_preg_valid_bit(int idx, int val);
     void print_valid_bit();
 };
 

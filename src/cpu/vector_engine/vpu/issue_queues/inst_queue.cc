@@ -210,7 +210,7 @@ InstQueue::evaluate()
                     vectorwrapper->vector_reg_validbit->
                     set_preg_valid_bit(renamed_dst, 1);
                 }
-                //Setting the executed bit in the ROB
+                // Setting the executed bit in the ROB
                 uint16_t rob_num = Instruction->dyn_insn->get_rob_num();
                 vectorwrapper->vector_rob->set_rob_entry_executed(rob_num);
 
