@@ -147,7 +147,7 @@ public:
     VectorEngine(VectorEngineParams *p);
     ~VectorEngine();
 
-    VectorConfig  *   vector_config;
+    VectorConfig  * vector_config;
     //used to identify ports uniquely to whole memory system
     MasterID VectorCacheMasterId;
     VectorMemPort vectormem_port;
@@ -157,8 +157,8 @@ public:
 
     VectorRegister * vector_reg;
     //MasterPort &getMasterPort(const std::string &if_name,
-    //                             PortID idx = InvalidPortID)/* override*/;
-    Port& getPort(const std::string& if_name,
+    //                             PortID idx = InvalidPortID)/*override*/;
+    Port& getPort(const std::string & if_name,
                                   PortID idx = InvalidPortID) override;
     MasterPort &getVectorMemPort() { return vectormem_port; }
 

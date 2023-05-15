@@ -47,6 +47,14 @@
  */
 class VectorRename : public SimObject
 {
+private:
+
+    std::deque<uint64_t> frl_mem;
+    std::deque<uint64_t> frl_scalar;
+
+    uint64_t rat_mem[32];
+    uint64_t rat_scalar[32];
+
 public:
     VectorRename(VectorRenameParams *p);
     ~VectorRename();
@@ -55,12 +63,6 @@ public:
     const uint64_t AdditionalRegs;
     const uint64_t PhysicalRegs_scalar = 32;
     const uint64_t LogicalRegs = 32;
-
-    std::deque<uint64_t> frl_mem;
-    std::deque<uint64_t> frl_scalar;
-
-    uint64_t rat_mem[32];
-    uint64_t rat_scalar[32];
 
     bool frl_empty()
     {
@@ -128,6 +130,11 @@ public:
     void set_preg_ratscalar(uint64_t idx , uint64_t val)
     {
         rat_scalar[idx] = val;
+    }
+    bool is_scalar_renamed(uint64_t idx)
+    {
+        //if yes, give scalar decode a bubble
+        return (rat_scalar[idx] != idx);
     }
 
     void print_rat()

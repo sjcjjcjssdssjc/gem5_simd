@@ -49,6 +49,18 @@ VectorEngineInterface::~VectorEngineInterface()
 {
 }
 
+uint64_t
+VectorEngineInterface::getratscalar(uint64_t idx)
+{
+    return vector_engine->vector_rename->get_preg_ratscalar(idx);
+}
+
+uint64_t
+VectorEngineInterface::is_screg_renamed(uint64_t idx)
+{
+    return vector_engine->vector_rename->is_scalar_renamed(idx);
+}
+
 bool
 VectorEngineInterface::requestGrant(RiscvISA::VectorStaticInst* vinst)
 {

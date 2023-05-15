@@ -321,6 +321,7 @@ VectorEngine::renameVectorInst(RiscvISA::VectorStaticInst& insn, VectorDynInst *
     uint64_t vd;
     uint64_t vs1,vs2,vs3;
     uint64_t rs1,rs2;
+    uint64_t Prs1,Prs2;
 
     vd = insn.vd();
     vs1 = insn.vs1();
@@ -341,7 +342,7 @@ VectorEngine::renameVectorInst(RiscvISA::VectorStaticInst& insn, VectorDynInst *
     bool strided = (mop == 2);
 
     if (insn.isVectorInstMem()) {
-        // TODO: maked memory operations are not implemented
+        // TODO: maked memory operations are not implemented(original)
         // NO SCALAR RD FOR LOADS.
         if (insn.isLoad()) {
             // indexed: vs2 stores offsets strided: rs2 stores stride
@@ -402,9 +403,9 @@ VectorEngine::renameVectorInst(RiscvISA::VectorStaticInst& insn, VectorDynInst *
         // dst_write_ena set when instruction has a vector destination register
         if (dst_write_ena) {
             // Setting the New Destination in the RAT structure
-            vector_rename->set_preg_rat(vd,PDst);
             // Setting to 0 the new physical destinatio valid bit
-            vector_reg_validbit->set_preg_valid_bit(PDst,0);
+            vector_rename->set_preg_rat(vd,PDst);
+            vector_reg_validbit->set_preg_valid_bit(PDst, 0);
         }
     } else {
         panic("Invalid Vector Instruction insn=%#h\n", insn.machInst);
@@ -413,8 +414,7 @@ VectorEngine::renameVectorInst(RiscvISA::VectorStaticInst& insn, VectorDynInst *
 
 void
 VectorEngine::dispatch(RiscvISA::VectorStaticInst& insn, ExecContextPtr& xc,
-    uint64_t src1,uint64_t src2,std::function<void()> dependencie_callback)
-{
+    uint64_t src1,uint64_t src2,std::function<void()> dependencie_callback) {
     if (insn.isVecConfig()) {
         last_vtype = src2;
         last_vl = src1;
