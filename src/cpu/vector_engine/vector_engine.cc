@@ -342,7 +342,7 @@ VectorEngine::renameVectorInst(RiscvISA::VectorStaticInst& insn, VectorDynInst *
     bool strided = (mop == 2);
 
     if (insn.isVectorInstMem()) {
-        // TODO: maked memory operations are not implemented(original)
+        // TD: maked memory operations are not implemented(original)
         // NO SCALAR RD FOR LOADS.
         if (insn.isLoad()) {
             // indexed: vs2 stores offsets strided: rs2 stores stride
@@ -364,8 +364,8 @@ VectorEngine::renameVectorInst(RiscvISA::VectorStaticInst& insn, VectorDynInst *
             vector_rename->set_preg_rat(vd, PDst);
             vector_reg_validbit->set_preg_valid_bit(PDst, 0);
         } else if (insn.isStore()) {
-            // TODO: rs1,rs2
-            // Physical  source 3 used to hold the data to store in memory
+            // DOING: rs1,rs2
+            // Physical source 3 used to hold the data to store in memory
             Prs1 = Prs2 = 1024;
             if (strided) {
                 Prs1 = vector_rename->get_preg_ratscalar(rs1);
@@ -375,7 +375,12 @@ VectorEngine::renameVectorInst(RiscvISA::VectorStaticInst& insn, VectorDynInst *
             Pvs3 = vector_rename->get_preg_rat(vs3);
             PMask = masked_op ? vector_rename->get_preg_rat(0) :1024;
 
-            vector_dyn_insn->set_renamed_src2(Pvs2);
+            if (strided) {
+                vector_dyn_insn->set_renamed_src2(Prs1);
+                vector_dyn_insn->set_renamed_src2(Prs2);
+            } else {
+                vector_dyn_insn->set_renamed_src2(Pvs2);
+            }
             vector_dyn_insn->set_renamed_src3(Pvs3);
             vector_dyn_insn->set_renamed_mask(PMask);
         }
