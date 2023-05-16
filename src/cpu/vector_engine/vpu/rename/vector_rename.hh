@@ -64,23 +64,11 @@ public:
     const uint64_t PhysicalRegs_scalar = 32;
     const uint64_t LogicalRegs = 32;
 
-    bool frl_empty()
-    {
-        return frl_mem.size() == 0;
-    }
-    bool frl_empty_scalar()
-    {
-        return frl_scalar.size() == 0;
-    }
+    bool frl_empty() { return frl_mem.size() == 0; }
+    bool frl_empty_scalar() { return frl_scalar.size() == 0; }
 
-    uint32_t frl_elements()
-    {
-        return frl_mem.size();
-    }
-    uint32_t frl_scalarelements()
-    {
-        return frl_scalar.size();
-    }
+    uint32_t frl_elements() { return frl_mem.size(); }
+    uint32_t frl_scalarelements() { return frl_scalar.size(); }
 
     uint64_t get_frl()
     {
@@ -95,6 +83,7 @@ public:
             return 0;
         }
     }
+
     uint64_t get_frl_scalar()
     {
         if (frl_scalar.size() > 0) {
@@ -122,20 +111,24 @@ public:
     {
         return rat_mem[idx];
     }
+
     uint64_t get_preg_ratscalar(uint64_t idx)
     {
         return rat_scalar[idx];
     }
 
-    void set_preg_ratscalar(uint64_t idx , uint64_t val)
+    void set_preg_rat(uint64_t idx, uint64_t val)
+    {
+        rat_mem[idx] = val;
+    }
+
+    void set_preg_ratscalar(uint64_t idx, uint64_t val)
     {
         rat_scalar[idx] = val;
     }
-    bool is_scalar_renamed(uint64_t idx)
-    {
-        //if yes, give scalar decode a bubble
-        return (rat_scalar[idx] != idx);
-    }
+
+    //if yes, give scalar decode a bubble
+    bool is_scalar_renamed(uint64_t idx) { return (rat_scalar[idx] != idx); }
 
     void print_rat()
     {

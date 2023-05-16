@@ -361,7 +361,7 @@ VectorEngine::renameVectorInst(RiscvISA::VectorStaticInst& insn, VectorDynInst *
             vector_dyn_insn->set_renamed_dst(PDst);
             vector_dyn_insn->set_renamed_old_dst(POldDst);
 
-            vector_rename->set_preg_rat(vd,PDst);
+            vector_rename->set_preg_rat(vd, PDst);
             vector_reg_validbit->set_preg_valid_bit(PDst, 0);
         } else if (insn.isStore()) {
             // TODO: rs1,rs2

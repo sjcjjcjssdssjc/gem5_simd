@@ -201,7 +201,7 @@ VectorLane::issue(VectorEngine& vector_wrapper,
         if (insn.getName() == "vext_xv") {
             addr_src2 = ((uint64_t)dyn_insn->get_renamed_src2() * mvl_bits / 8)
             + (src1 * DATA_SIZE);
-            DPRINTF(VectorLane, "vext_xv: base addrs 0x%x , \\
+            DPRINTF(VectorLane, "vext_xv: base addrs 0x%x , \
                     element addrs 0x%x, src1 %d\n", ((uint64_t)dyn_insn->
                     get_renamed_src2() * mvl_bits / 8),
                     addr_src2,src1);

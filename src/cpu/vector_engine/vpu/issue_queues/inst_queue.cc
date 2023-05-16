@@ -284,7 +284,7 @@ InstQueue::evaluate()
             }
             */
 
-            /* TODO : bug aqui ... debo evaluar bien los casos de indexed strided y unitstride ahora soportados*/
+            /* TODO : bug */
             src_ready = (isStore && !indexed_op) ?
                 vectorwrapper->vector_reg_validbit->get_preg_valid_bit(src3) :
                 (isStore && indexed_op) ?

@@ -81,6 +81,8 @@ public:
     // used for cpu engine
     uint64_t getratscalar(uint64_t idx);
 
+    uint64_t is_screg_renamed(uint64_t idx);
+
     /**
     * bussy function is used by the scalar core to know the state of the vector
     * engine. "1" means that the vector engine has vector instructions either
