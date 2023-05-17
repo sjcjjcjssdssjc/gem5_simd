@@ -133,18 +133,12 @@ public:
     void print_rat()
     {
         DPRINTF(VectorRename, "REGISTER ALIAS TABLE\n");
-        DPRINTF(VectorRename, "%lu %lu %lu %lu %lu %lu %lu %lu\n"
-            ,rat_mem[0],rat_mem[1],rat_mem[2],rat_mem[3],
-            rat_mem[4],rat_mem[5],rat_mem[6],rat_mem[7]);
-        DPRINTF(VectorRename, "%lu %lu %lu %lu %lu %lu %lu %lu\n"
-            ,rat_mem[8],rat_mem[9],rat_mem[10],rat_mem[11],
-            rat_mem[12],rat_mem[13],rat_mem[14],rat_mem[15]);
-        DPRINTF(VectorRename, "%lu %lu %lu %lu %lu %lu %lu %lu\n"
-            ,rat_mem[16],rat_mem[17],rat_mem[18],rat_mem[19],
-            rat_mem[20],rat_mem[21],rat_mem[22],rat_mem[23]);
-        DPRINTF(VectorRename, "%lu %lu %lu %lu %lu %lu %lu %lu\n"
-            ,rat_mem[24],rat_mem[25],rat_mem[26],rat_mem[27],
-            rat_mem[28],rat_mem[29],rat_mem[30],rat_mem[31]);
+        for (int i = 0; i < 8 ; i++) {
+            for (int j = 0; j < 4; j++) {
+                DPRINTF(VectorRename, "%lu ", rat_mem[i * 4 + j]);
+                DPRINTF(VectorRename, "\n");
+            }
+        }
     }
 };
 

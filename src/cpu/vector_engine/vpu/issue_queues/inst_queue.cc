@@ -320,7 +320,7 @@ InstQueue::evaluate()
                     // SETTING VALID BIT
                     if (wb_enable) {
                         vectorwrapper->vector_reg_validbit->
-                        set_preg_valid_bit(renamed_dst,1);
+                        set_preg_valid_bit(renamed_dst, 1);
                     }
 
                     // Setting the executed bit in the ROB
@@ -341,10 +341,6 @@ InstQueue::evaluate()
                     this->occupied = false;
                     // DPRINTF(VectorEngine,"Commit Ends\n");
                 });
-        }
-        else
-        {
-            //DPRINTF(InstQueue,"Sources not ready\n");
         }
     }
 }
