@@ -302,8 +302,7 @@ InstQueue::evaluate()
             }
         }
 
-        if (src_ready)
-        {
+        if (src_ready) {
             /*printing the issued instruction*/
             printMemInst(Mem_Instruction->insn,Mem_Instruction->dyn_insn);
             /*removing the instruction from the queue*/

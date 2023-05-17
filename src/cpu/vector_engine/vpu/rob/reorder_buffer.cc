@@ -100,8 +100,7 @@ ReorderBuffer::evaluate()
         VectorROBentriesUsed = valid_elements;
     }
 
-    if (rob[head]->executed)
-    {
+    if (rob[head]->executed) {
         DPRINTF(ReorderBuffer,"Commiting ROB entry %d \n",head);
         if (rob[head] -> valid_old_dst) {
             DPRINTF(ReorderBuffer,"Freeing up old_dst %d \n",

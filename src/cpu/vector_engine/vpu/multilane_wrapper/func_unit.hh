@@ -294,18 +294,20 @@ Datapath::computeSingleFPReduction(float accumSp,float Bitem,uint8_t Mitem)
     numFP32_operations = numFP32_operations.value() + 1; // number of 32-bit FP operations
 
     if ((operation == "vfredsum_vs") || (operation == "vfredosum_vs")) {
-         reduction = (vm==1) ? accumSp + Bitem : (Mitem) ? accumSp + Bitem : accumSp;
-         DPRINTF(Datapath," Reduction: Source %f  Acc= %f\n" ,Bitem, reduction);
+         reduction = (vm == 1) ? accumSp + Bitem : (Mitem) ?
+         accumSp + Bitem : accumSp;
+         DPRINTF(Datapath," Reduction: Source %f  Acc= %f\n",
+         Bitem, reduction);
     }
 
     if (operation == "vfredmax_vs") {
-         reduction = (vm==1) ? ((accumSp > Bitem) ? accumSp:Bitem) :
+         reduction = (vm == 1) ? ((accumSp > Bitem) ? accumSp:Bitem) :
                      (Mitem) ? ((accumSp > Bitem) ? accumSp:Bitem) : accumSp;
          DPRINTF(Datapath," Reduction: Source %f  Max= %f\n" ,Bitem, reduction);
     }
 
     if (operation == "vfredmin_vs") {
-         reduction = (vm==1) ? ((accumSp < Bitem) ? accumSp:Bitem) :
+         reduction = (vm == 1) ? ((accumSp < Bitem) ? accumSp:Bitem) :
                      (Mitem) ? ((accumSp < Bitem) ? accumSp:Bitem) : accumSp;
          DPRINTF(Datapath," Reduction: Source %f  Min= %f\n" ,Bitem, reduction);
     }

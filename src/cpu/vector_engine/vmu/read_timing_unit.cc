@@ -80,10 +80,10 @@ MemUnitReadTiming::queueData(uint8_t *data)
 }
 
 void
-MemUnitReadTiming::initialize(VectorEngine& vector_wrapper, uint64_t count,
-    uint64_t DST_SIZE,uint64_t mem_addr, uint8_t mop,uint64_t stride, bool location,
-    ExecContextPtr& xc, std::function<void(uint8_t*,
-    uint8_t,bool)> on_item_load) {
+MemUnitReadTiming::initialize(VectorEngine& vector_wrapper,
+    uint64_t count, uint64_t DST_SIZE, uint64_t mem_addr,
+    uint8_t mop, uint64_t stride, bool location, ExecContextPtr& xc,
+    std::function<void(uint8_t*, uint8_t,bool)> on_item_load) {
 
     assert(!running && !done);
     assert(count > 0);
@@ -101,18 +101,19 @@ MemUnitReadTiming::initialize(VectorEngine& vector_wrapper, uint64_t count,
 
     auto fin = [on_item_load,SIZE,count,this]
         (uint64_t i, std::vector<uint64_t> line_offsets) {
-        return [on_item_load,SIZE,count,i,line_offsets,this]
-            (uint8_t*data, uint8_t size) {
-            //spans multiple cache lines
-            for (uint64_t j = 0; j < line_offsets.size(); ++j) {
-                bool _done = ((i+j+1) == count);
-                uint8_t *ndata = new uint8_t[SIZE];
-                memcpy(ndata, data + line_offsets[j], SIZE);
-                DPRINTF(MemUnitReadTiming,
-                    "calling on_item_load with size %d. 'done'=%d\n"
-                    ,SIZE, _done);
-                on_item_load(ndata, SIZE, _done);
-            }
+        return [on_item_load, SIZE,
+                count, i, line_offsets, this]
+                (uint8_t *data, uint8_t size) {
+                //spans multiple cache lines
+                for (uint64_t j = 0; j < line_offsets.size(); ++j) {
+                    bool _done = ((i+j+1) == count);
+                    uint8_t *ndata = new uint8_t[SIZE];
+                    memcpy(ndata, data + line_offsets[j], SIZE);
+                    DPRINTF(MemUnitReadTiming,
+                        "calling on_item_load with size %d. 'done'=%d\n"
+                        ,SIZE, _done);
+                    on_item_load(ndata, SIZE, _done);
+                }
         };
     };
 
@@ -129,7 +130,7 @@ MemUnitReadTiming::initialize(VectorEngine& vector_wrapper, uint64_t count,
         }
 
         uint64_t line_addr;
-        uint8_t items_in_line;
+        uint8_t  items_in_line;
         uint64_t addr;//first addr
         uint64_t i = this->vecIndex;
 
@@ -152,6 +153,7 @@ MemUnitReadTiming::initialize(VectorEngine& vector_wrapper, uint64_t count,
                     break;
                 }
             }
+
         } else { //indexed operation
             uint64_t can_get = this->dataQ.size();
             if (!can_get) {
@@ -161,7 +163,7 @@ MemUnitReadTiming::initialize(VectorEngine& vector_wrapper, uint64_t count,
             uint64_t got = std::min(line_size / SIZE, can_get);
             uint8_t *buf = new uint8_t[got * SIZE];
             for (uint8_t i = 0; i < got; ++i) {
-                memcpy(buf+SIZE*i, this->dataQ[i], SIZE);
+                memcpy(buf + SIZE * i, this->dataQ[i], SIZE);
             }
 
             uint64_t index_addr;

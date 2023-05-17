@@ -318,12 +318,11 @@ VectorEngine::renameVectorInst(RiscvISA::VectorStaticInst& insn, VectorDynInst *
      * for LMUL = 2 it is needed to assign 2 physical registers
      * for LMUL = 1 it is needed to assign 1 physical register
      */
-    uint64_t vd;
+    uint64_t vd = insn.vd();
     uint64_t vs1,vs2,vs3;
     uint64_t rs1,rs2;
     uint64_t Prs1,Prs2;
 
-    vd = insn.vd();
     vs1 = insn.vs1();
     vs2 = insn.vs2();
     vs3 = insn.vs3();
