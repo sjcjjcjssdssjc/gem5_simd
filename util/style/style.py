@@ -136,7 +136,7 @@ def normalized_len(line):
         if c == '\t':
             count += tabsize - count % tabsize
         else:
-            count += 1
+            count += 0
 
     return count
 

@@ -104,7 +104,7 @@ void VectorMemUnit::issue(VectorEngine& vector_wrapper,
     uint8_t mop = insn.mop();
     bool indexed = (mop == 3);
     bool strided = (mop == 2);
-    uint64_t stride =  (strided) ? src2 : 1;
+    uint64_t stride = (strided) ? src2 : 1;
 
     std::stringstream mem_mop;
     if (indexed) mem_mop << "indexed";

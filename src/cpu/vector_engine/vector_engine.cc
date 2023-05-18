@@ -137,8 +137,9 @@ VectorEngine::requestGrant(RiscvISA::VectorStaticInst *insn)
         || (insn->isVectorInstMem()
         && !vector_inst_queue->mem_queue_full());
 
-    /* Usually, the Vector engine must ensure to have at least 1 physical register to accept an instruction.
-     * However, for widening operations this is different. When Widening operation with LMUL=2 means that 
+    /*
+     * Usually, the Vector engine must ensure to have at least 1 physical register to accept an instruction.
+     * However, for widening operations this is different. When Widening operation with LMUL=2 means that
      * the vector engine must have at least 2 physical registers available in order to acceept the instruction.
      * When LMUL=4, means that the vector engine must have at least 4 physical registers available in order 
      * to accept the instruction. And finally when LMUL=8, means that the vector engine must have at least 
@@ -183,7 +184,7 @@ VectorEngine::cluster_available()
 {
     bool available = 0;
 
-    for (int i=0 ; i< num_clusters ; i++)
+    for (int i = 0; i < num_clusters; i++)
     {
         available = available || !vector_lane[i]->isOccupied();
     }
@@ -195,119 +196,21 @@ void
 VectorEngine::printConfigInst(RiscvISA::VectorStaticInst& insn, uint64_t src1,uint64_t src2)
 {
     uint64_t pc = insn.getPC();
-    DPRINTF(VectorInst,"inst: %s vl:%d, vtype:%d       PC 0x%X\n"
+    DPRINTF(VectorInst,"inst: %s vl:%d, vtype:%d PC 0x%X\n"
         ,insn.getName(),src1,src2,*(uint64_t*)&pc );
 }
 
 void
 VectorEngine::printMemInst(RiscvISA::VectorStaticInst& insn,VectorDynInst *vector_dyn_insn)
 {
-    uint64_t pc = insn.getPC();
-    bool indexed = (insn.mop() ==3);
 
-    uint32_t PDst = vector_dyn_insn->get_renamed_dst();
-    uint32_t POldDst = vector_dyn_insn->get_renamed_old_dst();
-    uint32_t Pvs2 = vector_dyn_insn->get_renamed_src2();
-    uint32_t Pvs3 = vector_dyn_insn->get_renamed_src3();
-    uint32_t PMask = vector_dyn_insn->get_renamed_mask();
-
-    std::stringstream mask_ren;
-    if (masked_op) {
-        mask_ren << "v" << PMask << ".m";
-    } else {
-        mask_ren << "";
-    }
-
-    if (insn.isLoad())
-    {
-        if (indexed){
-            DPRINTF(VectorInst,"inst: %s v%d v%d       PC 0x%X\n",
-                insn.getName(),insn.vd(),insn.vs2(),*(uint64_t*)&pc);
-            DPRINTF(VectorRename,"renamed inst: %s v%d v%d %s  old_dst v%d"
-                "      PC 0x%X\n",insn.getName(),PDst,Pvs2,mask_ren.str(),POldDst,
-                *(uint64_t*)&pc);
-        } else {
-            DPRINTF(VectorInst,"inst: %s v%d       PC 0x%X\n"
-                ,insn.getName(),insn.vd(),*(uint64_t*)&pc);
-            DPRINTF(VectorRename,"renamed inst: %s v%d %s  old_dst v%d     "
-                " PC 0x%X\n",insn.getName(),PDst,mask_ren.str(),POldDst,*(uint64_t*)&pc);
-        }
-    }
-    else if (insn.isStore())
-    {
-         if (indexed){
-            DPRINTF(VectorInst,"inst: %s v%d v%d       PC 0x%X\n",
-                insn.getName(),insn.vd(),insn.vs2(),*(uint64_t*)&pc);
-            DPRINTF(VectorRename,"renamed inst: %s v%d v%d %s     PC 0x%X\n",
-                insn.getName(),Pvs3,Pvs2,mask_ren.str(),*(uint64_t*)&pc);
-        } else {
-            DPRINTF(VectorInst,"inst: %s v%d       PC 0x%X\n",
-                insn.getName(),insn.vd(),*(uint64_t*)&pc );
-            DPRINTF(VectorRename,"renamed inst: %s v%d %s       PC 0x%X\n",
-                insn.getName(),Pvs3,mask_ren.str(),*(uint64_t*)&pc);
-        }
-        
-    } else {
-        panic("Invalid Vector Instruction insn=%#h\n", insn.machInst);
-    }
 }
 
 void
 VectorEngine::printArithInst(RiscvISA::VectorStaticInst& insn,VectorDynInst *vector_dyn_insn)
 {
-    uint64_t pc = insn.getPC();
-    std::string masked;
-    if(masked_op) {masked = "v0.m";} else {masked = "   ";}
-    std::string reg_type;
-    if(insn.VectorToScalar()==1) {reg_type = "x";} else {reg_type = "v";}
 
-    std::string scr1_type;
-    scr1_type = (vx_op) ? "x" :
-                (vf_op) ? "f" :
-                (vi_op) ? " " : "v";
-
-    uint32_t PDst = (insn.VectorToScalar()==1) ? insn.vd() :
-                    vector_dyn_insn->get_renamed_dst();
-    uint32_t POldDst = vector_dyn_insn->get_renamed_old_dst();
-    uint32_t Pvs1 = (vx_op || vf_op || vi_op) ? insn.vs1() :
-                    vector_dyn_insn->get_renamed_src1();
-    uint32_t Pvs2 = vector_dyn_insn->get_renamed_src2();
-    uint32_t PMask = vector_dyn_insn->get_renamed_mask();
-
-    std::stringstream mask_ren;
-    if (masked_op) {
-        mask_ren << "v" << PMask << ".m";
-    } else {
-        mask_ren << "";
-    }
-
-    if (insn.arith1Src()) {
-        DPRINTF(VectorInst,"inst: %s %s%d v%d %s           PC 0x%X\n",
-            insn.getName(),reg_type,insn.vd(),insn.vs2(),masked,*(uint64_t*)&pc );
-        DPRINTF(VectorRename,"renamed inst: %s %s%d v%d %s  old_dst v%d     "
-            "    PC 0x%X\n",insn.getName(),reg_type,PDst,Pvs2,mask_ren.str(),
-            POldDst,*(uint64_t*)&pc);
-    }
-    else if (insn.arith2Srcs()) {
-        DPRINTF(VectorInst,"inst: %s %s%d v%d %s%d %s       PC 0x%X\n",
-            insn.getName(),reg_type,insn.vd(),insn.vs2(),scr1_type,insn.vs1(),
-            masked,*(uint64_t*)&pc );
-        DPRINTF(VectorRename,"renamed inst: %s %s%d v%d %s%d %s  old_dst v%d"
-            "        PC 0x%X\n",insn.getName(),reg_type,PDst,Pvs2,scr1_type,Pvs1,
-            mask_ren.str(),POldDst,*(uint64_t*)&pc);
-    }
-    else if (insn.arith3Srcs()) {
-        DPRINTF(VectorInst,"inst: %s %s%d v%d %s%d %s       PC 0x%X\n",
-            insn.getName(),reg_type,insn.vd(),insn.vs2(),scr1_type,insn.vs1(),
-            masked,*(uint64_t*)&pc );
-        DPRINTF(VectorRename,"renamed inst: %s %s%d v%d %s%d v%d %s "
-            "old_dst v%d         PC 0x%X\n",insn.getName(),reg_type,PDst,Pvs2,scr1_type,
-            Pvs1,POldDst,mask_ren.str(),POldDst,*(uint64_t*)&pc);
-    } else {
-        panic("Invalid Vector Instruction insn=%#h\n", insn.machInst);
-    }
 }
-
 
 void
 VectorEngine::renameVectorInst(RiscvISA::VectorStaticInst& insn, VectorDynInst *vector_dyn_insn)
@@ -318,11 +221,12 @@ VectorEngine::renameVectorInst(RiscvISA::VectorStaticInst& insn, VectorDynInst *
      * for LMUL = 2 it is needed to assign 2 physical registers
      * for LMUL = 1 it is needed to assign 1 physical register
      */
-    uint64_t vd = insn.vd();
+    uint64_t vd;
     uint64_t vs1,vs2,vs3;
     uint64_t rs1,rs2;
     uint64_t Prs1,Prs2;
 
+    vd = insn.vd();
     vs1 = insn.vs1();
     vs2 = insn.vs2();
     vs3 = insn.vs3();
@@ -341,21 +245,23 @@ VectorEngine::renameVectorInst(RiscvISA::VectorStaticInst& insn, VectorDynInst *
     bool strided = (mop == 2);
 
     if (insn.isVectorInstMem()) {
-        // TD: maked memory operations are not implemented(original)
-        // NO SCALAR RD FOR LOADS.
+        // TD: masked and strided memory operations are not implemented
         if (insn.isLoad()) {
-            // indexed: vs2 stores offsets strided: rs2 stores stride
             Prs1 = Prs2 = 1024;
             if (strided) {
                 Prs1 = vector_rename->get_preg_ratscalar(rs1);
                 Prs2 = vector_rename->get_preg_ratscalar(rs2);
+                DPRINTF(VectorRename, "strided load Prs1: %d Prs2: %d\n",
+                Prs1, Prs2);
             }
-            Pvs2 = (indexed) ? vector_rename->get_preg_rat(vs2) : 1024;
             PMask = masked_op ? vector_rename->get_preg_rat(0) : 1024;
-            PDst = vector_rename->get_frl();
+            Pvs2  = indexed ? vector_rename->get_preg_rat(vs2) : 1024;
+            PDst  = vector_rename->get_frl();
             POldDst = vector_rename->get_preg_rat(vd);
 
+            vector_dyn_insn->set_renamed_src1(strided ? Prs1 : 1024);
             vector_dyn_insn->set_renamed_src2(indexed ? Pvs2 : Prs2);
+
             vector_dyn_insn->set_renamed_mask(PMask);
             vector_dyn_insn->set_renamed_dst(PDst);
             vector_dyn_insn->set_renamed_old_dst(POldDst);
@@ -363,23 +269,23 @@ VectorEngine::renameVectorInst(RiscvISA::VectorStaticInst& insn, VectorDynInst *
             vector_rename->set_preg_rat(vd, PDst);
             vector_reg_validbit->set_preg_valid_bit(PDst, 0);
         } else if (insn.isStore()) {
-            // DOING: rs1,rs2
-            // Physical source 3 used to hold the data to store in memory
             Prs1 = Prs2 = 1024;
             if (strided) {
                 Prs1 = vector_rename->get_preg_ratscalar(rs1);
                 Prs2 = vector_rename->get_preg_ratscalar(rs2);
+                DPRINTF(VectorRename, "strided store Prs1: %d Prs2: %d\n",
+                Prs1, Prs2);
             }
             Pvs2 = (indexed) ? vector_rename->get_preg_rat(vs2) : 1024;
             Pvs3 = vector_rename->get_preg_rat(vs3);
-            PMask = masked_op ? vector_rename->get_preg_rat(0) :1024;
-
+            PMask = masked_op ? vector_rename->get_preg_rat(0) : 1024;
             if (strided) {
-                vector_dyn_insn->set_renamed_src2(Prs1);
+                vector_dyn_insn->set_renamed_src1(Prs1);
                 vector_dyn_insn->set_renamed_src2(Prs2);
             } else {
                 vector_dyn_insn->set_renamed_src2(Pvs2);
             }
+            /* stored data */
             vector_dyn_insn->set_renamed_src3(Pvs3);
             vector_dyn_insn->set_renamed_mask(PMask);
         }
@@ -503,18 +409,16 @@ void
 VectorEngine::issue(RiscvISA::VectorStaticInst& insn,VectorDynInst *dyn_insn,
     ExecContextPtr& xc,uint64_t src1,uint64_t src2,uint64_t vtype,
     uint64_t vl, std::function<void(Fault fault)> done_callback) {
-
     uint64_t pc = insn.getPC();
     
     if (insn.isVectorInstMem()) {
         // There is no scalar in this
         VectorMemIns++;
-        DPRINTF(VectorEngine,"Sending instruction %s to VMU, pc 0x%lx\n"
-            ,insn.getName(), *(uint64_t*)&pc);
+        DPRINTF(VectorEngine, "Sending instruction %s to VMU, pc 0x%lx\n"
+            ,insn.getName(), *(uint64_t*)& pc);
         // done_callback is write back.
         vector_memory_unit->issue(*this,insn,dyn_insn,xc,src1,src2,vtype,
             vl, done_callback);
-
         SumVL = SumVL.value() + vector_config->vector_length_in_bits(vl,vtype);
     }
     else if (insn.isVectorInstArith()) {
@@ -526,9 +430,8 @@ VectorEngine::issue(RiscvISA::VectorStaticInst& insn,VectorDynInst *dyn_insn,
                 lane_id_available = i;
             }
         }
-        DPRINTF(VectorEngine,"Sending instruction %s to Lanes, pc 0x%lx\n",
+        DPRINTF(VectorEngine, "Sending instruction %s to Lanes, pc 0x%lx\n",
             insn.getName(), *(uint64_t*)&pc);
-        // done_callback is write back.
         vector_lane[lane_id_available]->issue(*this,insn,dyn_insn,xc,src1,
             vtype, vl,done_callback);
     } else {

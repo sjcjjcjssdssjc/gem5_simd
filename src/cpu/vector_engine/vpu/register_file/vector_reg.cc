@@ -129,7 +129,7 @@ VectorRegister::~VectorRegister()
 bool
 VectorRegister::handleTimingReq(PacketPtr pkt, VectorRegisterPort *port)
 {
-    //need to make sure all accesses happen within a single line
+    // need to make sure all accesses happen within a single line
     uint64_t start_addr = pkt->getAddr();
     uint64_t end_addr = pkt->getAddr() + pkt->getSize() -1;
     uint64_t start_line_addr = start_addr - (start_addr % lineSize);
@@ -137,12 +137,12 @@ VectorRegister::handleTimingReq(PacketPtr pkt, VectorRegisterPort *port)
 
     assert(start_line_addr == end_line_addr);
 
-    //need to make sure we are accessing full data from accessed banks
+    // need to make sure we are accessing full data from accessed banks
     assert(start_addr % bytesPerBankAccess == 0);
     assert((end_addr+1) % bytesPerBankAccess == 0);
 
     // The memories for the VRF can be seen as num_entries*WORD_WIDTH.
-    //The read/write accesses are counted for each 64-bit read/write operation.
+    // The read/write accesses are counted for each 64-bit read/write operation.
     uint64_t WORD_WIDTH = 8;
 
     // Physical register size in bytes
@@ -157,7 +157,7 @@ VectorRegister::handleTimingReq(PacketPtr pkt, VectorRegisterPort *port)
         numReads_perLane_64bit_elements =
         numReads_perLane_64bit_elements.value() +
         ((pkt->getSize() / WORD_WIDTH) / num_lanes);
-        memcpy(pkt->getPtr<uint8_t>(), data+start_addr, pkt->getSize());
+        memcpy(pkt->getPtr<uint8_t>(), data + start_addr, pkt->getSize());
         DPRINTF(VectorRegister,"Have been read %u bytes from addr 0x%lx (Physical Reg %d)\n"
             ,pkt->getSize(), pkt->getAddr(),phys_reg);
     } else {
