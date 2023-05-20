@@ -102,16 +102,13 @@ InstQueue::regStats()
 void
 InstQueue::evaluate()
 {
-    if ((Instruction_Queue.size() == 0)
-        && (Memory_Queue.size() == 0)) {
+    if (Instruction_Queue.size() == 0 && Memory_Queue.size() == 0) {
         stopTicking();
-        DPRINTF(InstQueue,"Instruction Queue can not Issue more instructions"
-            " because is empty \n");
+        DPRINTF(InstQueue,"Instruction Queue can not Issue more instructions because is empty \n");
         return;
     }
 
-    if (Instruction_Queue.size() != 0
-       && vectorwrapper->cluster_available()) {
+    if (Instruction_Queue.size() != 0 && vectorwrapper->cluster_available()) {
         /* For statistics */
         int inst_queue_size = Instruction_Queue.size();
         if ((double)inst_queue_size > VectorArithQueueSlotsUsed.value()) {

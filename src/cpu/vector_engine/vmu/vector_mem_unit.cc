@@ -136,8 +136,7 @@ void VectorMemUnit::issue(VectorEngine& vector_wrapper,
     uint64_t mvl_elem = vectorwrapper->vector_config->
     get_max_vector_length_elem(vtype);
 
-    if (insn.isLoad())
-    {
+    if (insn.isLoad()) {
         mem_addr0 = (uint64_t)dyn_insn->get_renamed_dst() * mvl_bits / 8;
         location0 = 1; // 1 Vecor Register
 
@@ -158,8 +157,7 @@ void VectorMemUnit::issue(VectorEngine& vector_wrapper,
         DPRINTF(VectorMemUnit,"Vector Load %s from Base Memory Addrs: 0x%lx\n",
              mem_mop.str(),mem_addr);
 
-        // 0-3: unit-stride, indexed-unordered, strided, indexed-ordered
-        // indexed is indexed-ordered ONLY
+        // 0-3: unit-stride, X, strided, indexed-ordered
         if (indexed) {
             uint64_t mem_addr1 = (uint64_t)dyn_insn->get_renamed_src2();
             mem_addr1 = mem_addr1 * mvl_bits / 8;
@@ -169,7 +167,7 @@ void VectorMemUnit::issue(VectorEngine& vector_wrapper,
             DST_SIZE, mem_addr1, 0, 1, location0, xc, [DST_SIZE, this]
             (uint8_t *data, uint8_t size, bool done) {
                 uint8_t *ndata = new uint8_t[DST_SIZE];
-                memcpy(ndata, data, DST_SIZE);UINT_DSTSIZE
+                memcpy(ndata, data, DST_SIZE);
                 DPRINTF(VectorMemUnit,"queue Data index addr 0x%x\n"
                     , (UINT_DSTSIZE) ndata);
                 DPRINTF(VectorMemUnit, "dst size %d\n", DST_SIZE);
@@ -178,48 +176,35 @@ void VectorMemUnit::issue(VectorEngine& vector_wrapper,
             });
         }
 
-        memReader->initialize(vector_wrapper,vl_count,DST_SIZE,mem_addr,
-        mop,stride,location,xc,[mvl_elem,vl_count,DST_SIZE,this]
+        memReader->initialize(vector_wrapper, vl_count, DST_SIZE,
+            mem_addr, mop, stride, location, xc,
+            [mvl_elem,vl_count,DST_SIZE,this]
             (uint8_t *data, uint8_t size, bool done) {
-            uint8_t *ndata = new uint8_t[DST_SIZE];
-            memcpy(ndata, data, DST_SIZE);
-            DPRINTF(VectorMemUnit,"queue Data 0x%x \n",
-                (UINT_DSTSIZE)ndata ndata);
-            this->memWriter->queueData(ndata);
-            delete[] data;
-            // Fill remaining elements with 0
-            if (done){
-                int zero_count = mvl_elem-vl_count;
-                uint8_t * ZeroData =(uint8_t *)malloc(zero_count*DST_SIZE);
-                uint64_t zero_data = 0;
-                for (int i=0; i<zero_count;i++) {
-                    memcpy(ZeroData+(i*DST_SIZE),
-                        (uint8_t*)&zero_data,DST_SIZE);
+                uint8_t *ndata = new uint8_t[DST_SIZE];
+                memcpy(ndata, data, DST_SIZE);
+                DPRINTF(VectorMemUnit,"queue Data 0x%x \n",
+                    (UINT_DSTSIZE)ndata ndata);
+                this->memWriter->queueData(ndata);
+                delete[] data;
+                // Fill remaining elements with 0
+                if (done) {
+                    int zero_count = mvl_elem-vl_count;
+                    uint8_t *ZeroData =(uint8_t *)malloc(zero_count*DST_SIZE);
+                    uint64_t zero_data = 0;
+                    for (int i = 0; i < zero_count;i++) {
+                        memcpy(ZeroData + (i * DST_SIZE),
+                            (uint8_t*)&zero_data, DST_SIZE);
+                    }
+                    for (int i = 0; i < zero_count; i++) {
+                        uint8_t *ndata = new uint8_t[DST_SIZE];
+                        memcpy(ndata, ZeroData + (i * DST_SIZE), DST_SIZE);
+                        this->memWriter->queueData(ndata);
+                        DPRINTF(VectorMemUnit,"queue Data ""0x%x \n",
+                                (UINT_DSTSIZE)ndata );
+                    }
+                    delete [] ZeroData;
                 }
-                for (int i=0; i<zero_count; i++) {
-                    uint8_t *ndata = new uint8_t[DST_SIZE];
-                    memcpy(ndata, ZeroData+(i*DST_SIZE), DST_SIZE);
-                    this->memWriter->queueData(ndata);
-                    if (DST_SIZE==8) {
-                        DPRINTF(VectorMemUnit,"queue Data ""0x%x \n",
-                            *(uint64_t *) ndata );
-                    }
-                    if (DST_SIZE==4) {
-                        DPRINTF(VectorMemUnit,"queue Data ""0x%x \n",
-                            *(uint32_t *) ndata );
-                    }
-                    if (DST_SIZE==2) {
-                        DPRINTF(VectorMemUnit,"queue Data ""0x%x \n",
-                            *(uint16_t *) ndata );
-                    }
-                    if (DST_SIZE==1) {
-                        DPRINTF(VectorMemUnit,"queue Data ""0x%x \n",
-                            *(uint8_t *) ndata );
-                    }
-                }
-                delete [] ZeroData;
-            }
-        });
+            });
     } else if (insn.isStore()) {
 
         mem_addr0 = src1;
@@ -249,22 +234,8 @@ void VectorMemUnit::issue(VectorEngine& vector_wrapper,
             {
                 uint8_t *ndata = new uint8_t[DST_SIZE];
                 memcpy(ndata, data, DST_SIZE);
-                if (DST_SIZE==8) {
-                    DPRINTF(VectorMemUnit,"queue Addrs index addr 0x%x \n",
-                        *(uint64_t *) ndata );
-                }
-                if (DST_SIZE==4) {
-                    DPRINTF(VectorMemUnit,"queue Addrs index addr 0x%x \n",
-                        *(uint32_t *) ndata );
-                }
-                if (DST_SIZE==2) {
-                    DPRINTF(VectorMemUnit,"queue Addrs index addr 0x%x \n",
-                        *(uint16_t *) ndata );
-                }
-                if (DST_SIZE==1) {
-                    DPRINTF(VectorMemUnit,"queue Addrs index addr 0x%x \n",
-                        *(uint8_t *) ndata );
-                }
+                DPRINTF(VectorMemUnit,"queue Addrs index addr 0x%x \n",
+                    (UINT_DSTSIZE)ndata );
                 this->memWriter->queueAddrs(ndata);
                 delete[] data;
             });
@@ -280,19 +251,7 @@ void VectorMemUnit::issue(VectorEngine& vector_wrapper,
         {
             uint8_t *ndata = new uint8_t[DST_SIZE];
             memcpy(ndata, data, DST_SIZE);
-            if (DST_SIZE==8) {
-                DPRINTF(VectorMemUnit,"queue Data %X \n",*(uint64_t *)ndata);
-            }
-            if (DST_SIZE==4) {
-                DPRINTF(VectorMemUnit,"queue Data %X \n",*(uint32_t *)ndata);
-            }
-            if (DST_SIZE==2) {
-                DPRINTF(VectorMemUnit,"queue Data %X \n",*(uint16_t *)ndata);
-            }
-            if (DST_SIZE==1) {
-                DPRINTF(VectorMemUnit,"queue Data %X \n",*(uint8_t *)ndata);
-            }
-
+            DPRINTF(VectorMemUnit,"queue Data %X \n",(UINT_DSTSIZE)ndata);
             this->memWriter->queueData(ndata);
             delete[] data;
         });
