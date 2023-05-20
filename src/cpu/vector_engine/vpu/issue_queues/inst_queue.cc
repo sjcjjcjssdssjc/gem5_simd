@@ -253,7 +253,7 @@ InstQueue::evaluate()
         uint64_t src_ready = 0;
         bool ambiguous_dependency = 0;
 
-        QueueEntry * Mem_Instruction = Memory_Queue.front();
+        QueueEntry *Mem_Instruction = Memory_Queue.front();
         uint64_t queue_slot = 0;
         int queue_size = (OoO_queues) ? Memory_Queue.size() : 1;
         //int min = std::min(queue_size ,32);

@@ -99,10 +99,9 @@ MemUnitReadTiming::initialize(VectorEngine& vector_wrapper,
     //reset vecIndex
     vecIndex = 0;
 
-    auto fin = [on_item_load,SIZE,count,this]
+    auto fin = [on_item_load, SIZE, count, this]
         (uint64_t i, std::vector<uint64_t> line_offsets) {
-        return [on_item_load, SIZE,
-                count, i, line_offsets, this]
+        return [on_item_load, SIZE, count, i, line_offsets, this]
                 (uint8_t *data, uint8_t size) {
                 //spans multiple cache lines
                 for (uint64_t j = 0; j < line_offsets.size(); ++j) {
