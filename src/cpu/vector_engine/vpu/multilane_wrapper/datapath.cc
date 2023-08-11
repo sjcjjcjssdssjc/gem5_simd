@@ -308,12 +308,9 @@ Datapath::evaluate()
         /*
          * Reduction instruction
          */
-        if (reduction)
-        {
-            if (vector_lane->AdataQ.size() > 0)
-            {
-                if (fp_reduction)
-                {
+        if (reduction) {
+            if (vector_lane->AdataQ.size() > 0) {
+                if (fp_reduction) {
                     uint8_t *Aitem = vector_lane->AdataQ.front();
                     memcpy(Adata+(i*DATA_SIZE), Aitem, DATA_SIZE);
                     vector_lane->AdataQ.pop_front();
@@ -349,32 +346,22 @@ Datapath::evaluate()
                     reduction_first_done=1;
                 }
             }
-        /*
-         * If aritmetic instruction with only 1 source means that src1 is not used
-         */
-        } else if (!arith1Src)
-        {
+        } else if (!arith1Src) {
+            // If aritmetic instruction with only 1 source means that src1 is not used
             uint8_t *Aitem = vector_lane->AdataQ.front();
             memcpy(Adata+(i*DATA_SIZE), Aitem, DATA_SIZE);
             vector_lane->AdataQ.pop_front();
             delete[] Aitem;
         }
-
-        /*
-         * Src2 is always ised by the arithmetic instructions
-         */
-        if(!vector_set)
-        {
+        if (!vector_set) {
+            // Src2 is always ised by the arithmetic instructions
             uint8_t *Bitem = vector_lane->BdataQ.front();
             memcpy(Bdata+(i*DATA_SIZE), Bitem, DATA_SIZE);
             vector_lane->BdataQ.pop_front();
             delete[] Bitem;
         }
-        /*
-         * Mask register used by the instruction
-         */
-        if (vm==0)
-        {
+        if (vm==0) {
+            // Mask register used by the instruction
             uint8_t *Mitem = vector_lane->MdataQ.front();
             memcpy(Mdata+(i*1), Mitem, 1);
             vector_lane->MdataQ.pop_front();

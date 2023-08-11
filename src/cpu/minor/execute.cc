@@ -1207,8 +1207,8 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
                 DPRINTF(CpuVectorIssue, "Can commit, completed inst: %s\n",
                     *inst);
                 waiting_vector_engine_resp = false;
-                completed_vec_inst = false;
                 completed_inst = true;
+                completed_vec_inst = false;
         } else if (can_commit_insts && inst->staticInst->isVector()) {
             /* Is this instruction discardable as its streamSeqNum
              *  doesn't match? */
@@ -1241,12 +1241,11 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
                     vector_insn->setPC(pc);
                     uint64_t src1,src2;
 
-                    if (vector_insn->isVecConfig())
-                    {
+                    if (vector_insn->isVecConfig()) {
                         bool vsetvl = (vector_insn->getName() =="vsetvl");
-                        uint64_t rvl = xc->readIntRegOperand(vector_insn,0);
+                        uint64_t rvl = xc->readIntRegOperand(vector_insn,vector_insn->rs1());
                         uint64_t vtype = (vsetvl) ?
-                            xc->readIntRegOperand(vector_insn,1) :
+                            xc->readIntRegOperand(vector_insn,vector_insn->rs2()) ://1
                             (uint64_t)vector_insn->vtype();
                         uint64_t gvl = cpu.ve_interface->reqAppVectorLength(
                             rvl,vtype,(vector_insn->vs1()==0));
@@ -1262,17 +1261,13 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
                         }
                         src1 = gvl;
                         src2 = vtype;
-                    }
-                    else
-                    {
-
-                    //bool vx_src = (vector_insn->func3()==4) || (vector_insn->func3()==6);
-                    bool vf_src = (vector_insn->func3()==5) && vector_insn->isVectorInstArith();
-                    //bool vi_src = (vector_insn->func3()==3);
-
-                    src1 = (vf_src) ? xc->readFloatRegOperandBits(vector_insn,0) :
-                            xc->readIntRegOperand(vector_insn,0);
-                    src2 = xc->readIntRegOperand(vector_insn,1);
+                    } else {
+                        //bool vx_src = (vector_insn->func3()==4) || (vector_insn->func3()==6);
+                        bool vf_src = (vector_insn->func3() == 5) && vector_insn->isVectorInstArith();
+                        //bool vi_src = (vector_insn->func3()==3);
+                        src1 = (vf_src) ? xc->readFloatRegOperandBits(vector_insn,0) :
+                                xc->readIntRegOperand(vector_insn,vector_insn->rs1());//0
+                        src2 = xc->readIntRegOperand(vector_insn,vector_insn->rs2());//1
                     }
 
                     DPRINTF(CpuVectorIssue,"Sending vector isnt to the Vector"

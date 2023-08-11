@@ -572,6 +572,7 @@ Fetch1::evaluate()
         fetchInfo[tid].blocked = !nextStageReserve[tid].canReserve();
 
     /** Are both branches from later stages valid and for the same thread? */
+    // for riscv processors always take the if branch
     if (execute_branch.threadId != InvalidThreadID &&
         execute_branch.threadId == fetch2_branch.threadId) {
 
@@ -607,6 +608,7 @@ Fetch1::evaluate()
             }
         }
     } else {
+        // for now, not taken
         /* Fetch2 and Execute branches are for different threads */
         if (execute_branch.threadId != InvalidThreadID &&
             execute_branch.isStreamChange()) {

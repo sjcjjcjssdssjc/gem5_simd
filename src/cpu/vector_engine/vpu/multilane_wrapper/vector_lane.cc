@@ -70,13 +70,11 @@ VectorLane::issue(VectorEngine& vector_wrapper,
     RiscvISA::VectorStaticInst& insn,
     VectorDynInst* dyn_insn, ExecContextPtr& xc, uint64_t src1,
     uint64_t vtype, uint64_t vl,
-    std::function<void(Fault fault)> done_callback)
-{
+    std::function<void(Fault fault)> done_callback) {
     assert(!occupied);
     occupied = true;
 
     vectorwrapper = &vector_wrapper;
-
     // 0 = 8-bit , 1 = 16-bit , 2 = 32-bit , 3 = 64-bit , 4 = 128-bit
     uint64_t sew;
     sew = vectorwrapper->vector_config->get_vtype_sew(vtype);
@@ -100,9 +98,9 @@ VectorLane::issue(VectorEngine& vector_wrapper,
 
     std::string operation = insn.getName();
 
-    bool  move_to_core = (operation == "vfmv_fs") || (operation == "vext_xv");
-    bool  move_to_core_int = (operation == "vext_xv");
-    bool  move_to_core_float = (operation == "vfmv_fs");
+    bool move_to_core = (operation == "vfmv_fs") || (operation == "vext_xv");
+    bool move_to_core_int = (operation == "vext_xv");
+    bool move_to_core_float = (operation == "vfmv_fs");
 
     uint64_t i;
     // OPIVI, OPIVX , OPFVF and OPMVX formats
@@ -142,8 +140,7 @@ VectorLane::issue(VectorEngine& vector_wrapper,
         insn.getName(), vl_count, mvl_element);
 
     /* mvl_element is used to write with "0" the tail elements */
-    if (reduction)
-    {
+    if (reduction) {
         dst_count = 1;
         src1_count = 1;
     }
@@ -187,8 +184,7 @@ VectorLane::issue(VectorEngine& vector_wrapper,
 
     dyn_insn->set_VectorStaticInst(&insn);
 
-    if (move_to_core)
-    {
+    if (move_to_core) {
         /*
          * move_to_core refers to the instructions only read the first
          * element of some vector register and send immediately to
@@ -247,8 +243,7 @@ VectorLane::issue(VectorEngine& vector_wrapper,
                 done_callback(NoFault);
             });
     }
-    else
-    {
+    else {
         bool is_slide = insn.is_slide();
         uint64_t slide_count = 0;
         if (is_slide)

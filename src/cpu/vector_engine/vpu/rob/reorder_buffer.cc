@@ -158,7 +158,7 @@ ReorderBuffer::set_rob_entry(uint32_t old_dst, bool valid_old_dst,
         tail++;
     }
 
-    valid_elements ++;
+    valid_elements++;
 
     return return_tail;
 }

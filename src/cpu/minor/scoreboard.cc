@@ -54,8 +54,7 @@ Scoreboard::findIndex(const RegId& reg, Index &scoreboard_index)
         /* Don't bother with the zero register */
         ret = false;
     } else {
-        switch (reg.classValue())
-        {
+        switch (reg.classValue()) {
           case IntRegClass:
             scoreboard_index = reg.index();
             ret = true;
@@ -104,7 +103,7 @@ flattenRegIndex(const RegId& reg, ThreadContext *thread_context)
     return thread_context->flattenRegId(reg);
 }
 
-void
+void 
 Scoreboard::markupInstDests(MinorDynInstPtr inst, Cycles retire_time,
     ThreadContext *thread_context, bool mark_unpredictable)
 {
@@ -116,8 +115,7 @@ Scoreboard::markupInstDests(MinorDynInstPtr inst, Cycles retire_time,
 
     /** Mark each destination register */
     for (unsigned int dest_index = 0; dest_index < num_dests;
-        dest_index++)
-    {
+        dest_index++) {
         RegId reg = flattenRegIndex(
                 staticInst->destRegIdx(dest_index), thread_context);
         Index index;
