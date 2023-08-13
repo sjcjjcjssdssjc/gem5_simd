@@ -47,10 +47,10 @@ class VectorDynInst
     }
   ~VectorDynInst() {}
 
- /* 
-  Renamed registers,
-  which can be vector reg, also scalar reg.
- */
+  /* 
+    Renamed registers,
+    which can be vector reg, also scalar reg.
+  */
   uint16_t get_renamed_src1()  { return renamed_src1; }
   uint16_t get_renamed_src2() { return renamed_src2; }
   uint16_t get_renamed_src3() { return renamed_src3; }
