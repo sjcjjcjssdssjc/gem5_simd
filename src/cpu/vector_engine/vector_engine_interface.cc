@@ -79,19 +79,21 @@ VectorEngineInterface::sendCommand(RiscvISA::VectorStaticInst* vinst ,ExecContex
 }
 
 uint64_t
-VectorEngineInterface::getValueForIntRegIndex(RiscvISA::VectorStaticInst* vinst, int idx)
+VectorEngineInterface::getRenamedScalarIntRegIndex(RiscvISA::VectorStaticInst* vinst, int idx)
 {
+    //do arch exploration
+    assert(vinst->dyn_insn);
     RegId src1 = vinst->dyn_insn->get_renamed_src1();
     RegId src2 = vinst->dyn_insn->get_renamed_src2();
-    if (!idx) return ;
-    else return ;
+    if (!idx) return src1;
+    else return src2;
 }
 
 bool
-VectorEngineInterface::isIntRegIndexReady(RiscvISA::VectorStaticInst* vinst, int idx)
+VectorEngineInterface::isScalarIntRegIndexReady(RiscvISA::VectorStaticInst* vinst, int idx)
 {
     const RegId& reg = vinst->srcRegIdx(idx);
-    return vectorwrapper->vector_reg_validbit->get_preg_valid_bit(reg);
+    return vector_engine->vector_reg_validbit->get_preg_valid_bit(reg);
 }
 
 uint64_t
