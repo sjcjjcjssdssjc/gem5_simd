@@ -363,6 +363,7 @@ VectorEngine::dispatch(RiscvISA::VectorStaticInst& insn, ExecContextPtr& xc,
     dst_write_ena = !insn.VectorToScalar();
 
     VectorDynInst *vector_dyn_insn = new VectorDynInst();
+    //insn.dyn_insn = vector_dyn_insn;
 
     renameVectorInst(insn,vector_dyn_insn);
 

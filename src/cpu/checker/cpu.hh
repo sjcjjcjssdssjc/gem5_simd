@@ -200,6 +200,14 @@ class CheckerCPU : public BaseCPU, public ExecContext
         return thread->readFloatReg(reg.index());
     }
 
+    RegVal
+    readIntRegOperandForVec(const StaticInst *si, int idx) override
+    {
+        const RegId& reg = si->srcRegIdx(idx);
+        assert(reg.isIntReg());
+        return thread->readIntReg(reg.index());
+    }
+
     /**
      * Read source vector register operand.
      */

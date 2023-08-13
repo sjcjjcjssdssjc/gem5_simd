@@ -71,6 +71,12 @@ public:
     void sendCommand(RiscvISA::VectorStaticInst *vinst ,ExecContextPtr& xc ,
         uint64_t src1, uint64_t src2, std::function<void()> done_callback);
 
+    uint64_t VectorEngineInterface::getValueForIntRegIndex(
+                    RiscvISA::VectorStaticInst* vinst, int idx);
+
+    bool VectorEngineInterface::isIntRegIndexReady(
+                RiscvISA::VectorStaticInst* vinst, int idx)
+
     /**
     * reqAppVectorLength function is used by the vector configuration
     * instructions. This instructions ask to the vector engine for some

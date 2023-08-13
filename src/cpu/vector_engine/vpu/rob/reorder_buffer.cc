@@ -153,7 +153,7 @@ ReorderBuffer::set_rob_entry(uint32_t old_dst, bool valid_old_dst,
     }
 
     if (tail == ROB_Size-1) {
-        tail=0;
+        tail = 0;
     } else {
         tail++;
     }

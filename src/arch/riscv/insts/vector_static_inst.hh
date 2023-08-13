@@ -159,6 +159,8 @@ private:
 
 class RiscvVectorInsn : public VectorStaticInst
 {
+  public:
+  VectorDynInst *dyn_insn;
   protected:
   RiscvVectorInsn(const char *mnem, MachInst _machInst, OpClass __opClass):
       VectorStaticInst(mnem, _machInst, __opClass),
@@ -193,6 +195,13 @@ class RiscvVectorInsn : public VectorStaticInst
 
   RegIndex rs1()             const override { return (RegIndex)x(15, 5); }
   RegIndex rs2()             const override { return (RegIndex)x(20, 5); }
+  RegIndex srcRegIdx(int idx) {
+    if(idx == 0) {
+      return rs1();
+    } else {
+      return rs2(;)
+    }       
+  }
   RegIndex rd()              const override { return (RegIndex)x(7, 5); }
 
   bool isFP()                const  override   { return ((func3()==1) || (func3()==5)) && !isConvert(); }
