@@ -33,7 +33,7 @@ import os
 import re
 import sys
 
-from style.repo import GitRepo
+#from style.repo import GitRepo
 
 def _printErrorQuit(error_message):
     """
@@ -103,7 +103,7 @@ def _validateTags(commit_header):
         _printErrorQuit("Invalid Gem5 tag: " + invalid_tag)
 
 # Go to git directory
-os.chdir(GitRepo().repo_base())
+#os.chdir(GitRepo().repo_base())
 
 # Get the commit message
 commit_message = open(sys.argv[1]).read()

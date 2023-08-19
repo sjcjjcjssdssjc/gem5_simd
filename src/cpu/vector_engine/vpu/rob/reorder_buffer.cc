@@ -103,8 +103,8 @@ ReorderBuffer::evaluate()
     if (rob[head]->executed) {
         DPRINTF(ReorderBuffer,"Commiting ROB entry %d \n",head);
         if (rob[head] -> valid_old_dst) {
-            DPRINTF(ReorderBuffer,"Freeing up old_dst %d \n",
-            rob[head] -> old_dst);
+            DPRINTF(ReorderBuffer,"Freeing up old_dst %d scalar? %d\n",
+            rob[head] -> old_dst, rob[head] -> rename_scalar);
             if (!rob[head] -> rename_scalar) {
                 vectorwrapper->vector_rename->set_frl(rob[head]->old_dst);
             } else {

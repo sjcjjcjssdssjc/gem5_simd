@@ -159,8 +159,9 @@ private:
 
 class RiscvVectorInsn : public VectorStaticInst
 {
-  public:
-  VectorDynInst *dyn_insn;
+  //not graceful
+  //public:
+  //VectorDynInst *dyn_insn;
   protected:
   RiscvVectorInsn(const char *mnem, MachInst _machInst, OpClass __opClass):
       VectorStaticInst(mnem, _machInst, __opClass),
@@ -199,8 +200,8 @@ class RiscvVectorInsn : public VectorStaticInst
     if(idx == 0) {
       return rs1();
     } else {
-      return rs2(;)
-    }       
+      return rs2();
+    }
   }
   RegIndex rd()              const override { return (RegIndex)x(7, 5); }
 

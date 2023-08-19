@@ -201,7 +201,7 @@ class CheckerCPU : public BaseCPU, public ExecContext
     }
 
     RegVal
-    readIntRegOperandForVec(const StaticInst *si, int idx) override
+    readIntRegOperandForVec(const StaticInst *si, int idx)
     {
         const RegId& reg = si->srcRegIdx(idx);
         assert(reg.isIntReg());

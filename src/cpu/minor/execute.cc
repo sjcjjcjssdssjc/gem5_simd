@@ -602,6 +602,7 @@ Execute::issue(ThreadID thread_id)
                 "for thread %d\n",*inst, thread.streamSeqNum);
             issued = false;
         } else if (inst->staticInst->isVector()) {
+            // in execute stage(vectorengine)
             if (!scoreboard[thread_id].canInstIssue(inst, NULL, NULL,
                 cpu.curCycle(), cpu.getContext(thread_id))) {
                 DPRINTF(CpuVectorIssue,"Vector Ins blocked by scoreboard: %s"
@@ -1209,7 +1210,12 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
                 waiting_vector_engine_resp = false;
                 completed_inst = true;
                 completed_vec_inst = false;
-        } else if (can_commit_insts && inst->staticInst->isVector()) {
+        } else if (can_commit_insts && inst->staticInst->isVector()
+            && cpu.ve_interface->isIntRegIndexReady(
+                dynamic_cast<RiscvISA::VectorStaticInst*>(inst->staticInst.get()), 0)
+            && cpu.ve_interface->isIntRegIndexReady(
+                dynamic_cast<RiscvISA::VectorStaticInst*>(inst->staticInst.get()), 1)) {
+            // change to inst->dynamicInst someday(get)
             /* Is this instruction discardable as its streamSeqNum
              *  doesn't match? */
             discard_inst = inst->id.streamSeqNum !=

@@ -40,15 +40,6 @@
 #include "debug/VectorMemUnit.hh"
 #include "sim/faults.hh"
 #include "sim/sim_object.hh"
-#if (DST_SIZE == 1)
-#define UINT_DSTSIZE (*(uint8_t *))
-#elif (DST_SIZE == 2)
-#define UINT_DSTSIZE (*(uint16_t *))
-#elif (DST_SIZE == 4)
-#define UINT_DSTSIZE (*(uint32_t *))
-#else
-#define UINT_DSTSIZE (*(uint64_t *))
-#endif
 
 VectorMemUnit::VectorMemUnit(const VectorMemUnitParams *p) :
     SimObject(p),
@@ -168,7 +159,7 @@ void VectorMemUnit::issue(VectorEngine& vector_wrapper,
             (uint8_t *data, uint8_t size, bool done) {
                 uint8_t *ndata = new uint8_t[DST_SIZE];
                 memcpy(ndata, data, DST_SIZE);
-                DPRINTF(VectorMemUnit,"queue Data index addr 0x%x\n"
+                //DPRINTF(VectorMemUnit,"queue Data index addr 0x%x\n" \
                     , (UINT_DSTSIZE) ndata);
                 DPRINTF(VectorMemUnit, "dst size %d\n", DST_SIZE);
                 this->memReader->queueData(ndata);
@@ -182,7 +173,7 @@ void VectorMemUnit::issue(VectorEngine& vector_wrapper,
             (uint8_t *data, uint8_t size, bool done) {
                 uint8_t *ndata = new uint8_t[DST_SIZE];
                 memcpy(ndata, data, DST_SIZE);
-                DPRINTF(VectorMemUnit,"queue Data 0x%x \n",
+                //DPRINTF(VectorMemUnit,"queue Data 0x%x \n", \
                     (UINT_DSTSIZE)ndata ndata);
                 this->memWriter->queueData(ndata);
                 delete[] data;
@@ -199,7 +190,7 @@ void VectorMemUnit::issue(VectorEngine& vector_wrapper,
                         uint8_t *ndata = new uint8_t[DST_SIZE];
                         memcpy(ndata, ZeroData + (i * DST_SIZE), DST_SIZE);
                         this->memWriter->queueData(ndata);
-                        DPRINTF(VectorMemUnit,"queue Data ""0x%x \n",
+                        //DPRINTF(VectorMemUnit,"queue Data ""0x%x \n",\
                                 (UINT_DSTSIZE)ndata );
                     }
                     delete [] ZeroData;
@@ -234,7 +225,7 @@ void VectorMemUnit::issue(VectorEngine& vector_wrapper,
             {
                 uint8_t *ndata = new uint8_t[DST_SIZE];
                 memcpy(ndata, data, DST_SIZE);
-                DPRINTF(VectorMemUnit,"queue Addrs index addr 0x%x \n",
+                //DPRINTF(VectorMemUnit,"queue Addrs index addr 0x%x \n",\
                     (UINT_DSTSIZE)ndata );
                 this->memWriter->queueAddrs(ndata);
                 delete[] data;
@@ -251,7 +242,7 @@ void VectorMemUnit::issue(VectorEngine& vector_wrapper,
         {
             uint8_t *ndata = new uint8_t[DST_SIZE];
             memcpy(ndata, data, DST_SIZE);
-            DPRINTF(VectorMemUnit,"queue Data %X \n",(UINT_DSTSIZE)ndata);
+            //DPRINTF(VectorMemUnit,"queue Data %X \n",(UINT_DSTSIZE)ndata);\
             this->memWriter->queueData(ndata);
             delete[] data;
         });

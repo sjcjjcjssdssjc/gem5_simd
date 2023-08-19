@@ -79,21 +79,22 @@ VectorEngineInterface::sendCommand(RiscvISA::VectorStaticInst* vinst ,ExecContex
 }
 
 uint64_t
-VectorEngineInterface::getRenamedScalarIntRegIndex(RiscvISA::VectorStaticInst* vinst, int idx)
+VectorEngineInterface::getRenamedRegIndex(RiscvISA::VectorStaticInst* vinst, int idx)
 {
     //do arch exploration
-    assert(vinst->dyn_insn);
-    RegId src1 = vinst->dyn_insn->get_renamed_src1();
-    RegId src2 = vinst->dyn_insn->get_renamed_src2();
+    uint64_t src1 = vector_engine->vector_rename->get_preg_ratscalar(vinst->rs1());
+    uint64_t src2 = vector_engine->vector_rename->get_preg_ratscalar(vinst->rs2());
+    //TODO:get value
     if (!idx) return src1;
     else return src2;
 }
 
 bool
-VectorEngineInterface::isScalarIntRegIndexReady(RiscvISA::VectorStaticInst* vinst, int idx)
+VectorEngineInterface::isIntRegIndexReady(RiscvISA::VectorStaticInst* vinst, int idx)
 {
     const RegId& reg = vinst->srcRegIdx(idx);
-    return vector_engine->vector_reg_validbit->get_preg_valid_bit(reg);
+    uint64_t renamed_idx = vector_engine->vector_rename->get_preg_ratscalar(reg.index());
+    return vector_engine->vector_reg_validbit->get_preg_valid_bit(renamed_idx);
 }
 
 uint64_t
