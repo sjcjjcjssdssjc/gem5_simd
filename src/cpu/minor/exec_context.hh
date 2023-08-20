@@ -134,11 +134,9 @@ class ExecContext : public ::ExecContext
     }
 
     RegVal
-    readIntRegOperand(const StaticInst *si, int idx) override
+    readIntRegOperand(const StaticInst *si, int renamed_idx) override
     {
-        const RegId& reg = si->srcRegIdx(idx);
-        assert(reg.isIntReg());
-        return thread.readIntReg(reg.index());
+        return thread.readIntReg((RegIndex)renamed_idx);
     }
 
     RegVal

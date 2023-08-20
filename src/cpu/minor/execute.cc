@@ -1249,10 +1249,13 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
 
                     if (vector_insn->isVecConfig()) {
                         bool vsetvl = (vector_insn->getName() =="vsetvl");
-                        uint64_t rvl = xc->readIntRegOperand(vector_insn, 0); 
-                        //TODO: chenge the 4
+                        uint64_t rvl = xc->readIntRegOperand(
+                                    NULL, cpu.ve_interface->getRenamedRegIndex(
+                                        vector_insn, 0));
                         uint64_t vtype = (vsetvl) ?
-                            xc->readIntRegOperand(vector_insn, 1) :
+                            xc->readIntRegOperand(
+                                    NULL, cpu.ve_interface->getRenamedRegIndex(
+                                        vector_insn, 1));
                             (uint64_t)vector_insn->vtype();
                         uint64_t gvl = cpu.ve_interface->reqAppVectorLength(
                             rvl,vtype,(vector_insn->vs1()==0));
@@ -1264,6 +1267,7 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
                         if (vector_insn->vd() != 0) {
                             DPRINTF(CpuVectorIssue,"Setting register: %d ,"
                                 " with value : %d\n",vector_insn->vd(), gvl);
+                            // SJCTODO:SET
                             xc->setIntRegOperand(vector_insn,0,gvl);
                         }
                         src1 = gvl;
@@ -1271,10 +1275,16 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
                     } else {
                         //bool vx_src = (vector_insn->func3()==4) || (vector_insn->func3()==6);
                         bool vf_src = (vector_insn->func3() == 5) && vector_insn->isVectorInstArith();
-                        //bool vi_src = (vector_insn->func3()==3);
+                        // bool vi_src = (vector_insn->func3()==3);
+                        // readIntRegOperand is renamed
+                        // xc->readIntRegOperand(vector_insn,0);
                         src1 = (vf_src) ? xc->readFloatRegOperandBits(vector_insn,0) :
-                                xc->readIntRegOperand(vector_insn,0);
-                        src2 = xc->readIntRegOperand(vector_insn,1);
+                                xc->readIntRegOperand(
+                                    NULL, cpu.ve_interface->getRenamedRegIndex(
+                                        vector_insn, 0));
+                        src2 = xc->readIntRegOperand(
+                                    NULL, cpu.ve_interface->getRenamedRegIndex(
+                                        vector_insn, 1));
                     }
 
                     DPRINTF(CpuVectorIssue,"Sending vector isnt to the Vector"
