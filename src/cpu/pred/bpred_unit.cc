@@ -380,7 +380,7 @@ BPredUnit::squash(const InstSeqNum &squashed_sn, ThreadID tid)
                     " Restoring top of RAS to: %i,"
                     " target: %s\n", tid, squashed_sn,
                     pred_hist.front().RASIndex, pred_hist.front().RASTarget);
-
+            // to be readed
             RAS[tid].restore(pred_hist.front().RASIndex,
                              pred_hist.front().RASTarget);
         } else if (pred_hist.front().wasCall && pred_hist.front().pushedRAS) {
@@ -449,8 +449,7 @@ BPredUnit::squash(const InstSeqNum &squashed_sn,
         if (pred_hist.front().seqNum != squashed_sn) {
             DPRINTF(Branch, "Front sn %i != Squash sn %i\n",
                     pred_hist.front().seqNum, squashed_sn);
-
-            assert(pred_hist.front().seqNum == squashed_sn);
+            assert(0);//pred_hist.front().seqNum == squashed_sn);
         }
 
 
@@ -474,6 +473,7 @@ BPredUnit::squash(const InstSeqNum &squashed_sn,
         pred_hist.front().predTaken = actually_taken;
         pred_hist.front().target = corrTarget.instAddr();
 
+        // simple example: strongly not taken->weakly taken
         update(tid, (*hist_it).pc, actually_taken,
                pred_hist.front().bpHistory, true, pred_hist.front().inst,
                corrTarget.instAddr());

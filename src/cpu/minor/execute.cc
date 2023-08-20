@@ -488,6 +488,7 @@ Execute::executeMemRefInst(MinorDynInstPtr inst, BranchData &branch,
         } else {
             /* Only set this if the instruction passed its
              * predicate */
+            // to be readed
             if (!context.readMemAccPredicate()) {
                 DPRINTF(MinorMem, "No memory access for inst: %s\n", *inst);
                 assert(context.readPredicate());
@@ -967,6 +968,7 @@ Execute::commitInst(MinorDynInstPtr inst, bool early_memory_issue,
          *  Execute::commit will commit it.
          */
         bool predicate_passed = false;
+        // EA is calculated before(this function only check faults)
         bool completed_mem_inst = executeMemRefInst(inst, branch,
             predicate_passed, fault);
 

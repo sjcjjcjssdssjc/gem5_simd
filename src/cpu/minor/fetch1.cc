@@ -165,8 +165,9 @@ Fetch1::fetchLine(ThreadID tid)
     DPRINTF(Fetch, "Inserting fetch into the fetch queue "
         "%s addr: 0x%x pc: %s line_offset: %d request_size: %d\n",
         request_id, aligned_pc, thread.pc, line_offset, request_size);
-
+    // FetchRequestPtr.RequestPtr
     request->request->setContext(cpu.threads[tid]->getTC()->contextId());
+    // request.hh
     request->request->setVirt(
         aligned_pc, request_size, Request::INST_FETCH, cpu.instMasterId(),
         /* I've no idea why we need the PC, but give it */

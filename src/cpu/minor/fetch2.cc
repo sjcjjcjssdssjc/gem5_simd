@@ -149,6 +149,7 @@ Fetch2::updateBranchPrediction(const BranchData &branch)
       case BranchData::UnpredictedBranch:
         /* Unpredicted branch or barrier */
         DPRINTF(Branch, "Unpredicted branch seen inst: %s\n", *inst);
+        // src/cpu/pred/bpred_unit.hh
         branchPredictor.squash(inst->id.fetchSeqNum,
             branch.target, true, inst->id.threadId);
         // Update after squashing to accomodate O3CPU
