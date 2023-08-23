@@ -316,6 +316,7 @@ Fetch2::evaluate()
             /* Discard line due to prediction sequence number being wrong but
              * without the streamSeqNum number having changed */
             bool discard_line =
+                // fetch info is threadinfo
                 fetch_info.expectedStreamSeqNum == line_in->id.streamSeqNum &&
                 fetch_info.predictionSeqNum != line_in->id.predictionSeqNum;
 
