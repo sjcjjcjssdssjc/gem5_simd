@@ -358,7 +358,8 @@ Fetch2::evaluate()
                  *  prediction, thread ids from the incoming line */
                 dyn_inst = new MinorDynInst(line_in->id);
 
-                /* Fetch and prediction sequence numbers originate here */
+                /* Fetch and prediction sequence numbers originate here 
+                * where fetch_info is thread info associated with inst */
                 dyn_inst->id.fetchSeqNum = fetch_info.fetchSeqNum;
                 dyn_inst->id.predictionSeqNum = fetch_info.predictionSeqNum;
                 /* To complete the set, test that exec sequence number has
@@ -397,7 +398,8 @@ Fetch2::evaluate()
                      *  prediction, thread ids from the incoming line */
                     dyn_inst = new MinorDynInst(line_in->id);
 
-                    /* Fetch and prediction sequence numbers originate here */
+                    /* Fetch and prediction sequence numbers originate here 
+                     * where fetch_info is thread info associated with inst */
                     dyn_inst->id.fetchSeqNum = fetch_info.fetchSeqNum;
                     dyn_inst->id.predictionSeqNum = fetch_info.predictionSeqNum;
                     /* To complete the set, test that exec sequence number
