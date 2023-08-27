@@ -80,6 +80,9 @@ class ExecContext : public ::ExecContext
     /** Instruction for the benefit of memory operations and for PC */
     MinorDynInstPtr inst;
 
+    //SJCTODO: change arrsize to freelist size
+    RegVal additional_regs[5];
+
     ExecContext (
         MinorCPU &cpu_,
         SimpleThread &thread_, Execute &execute_,
@@ -136,7 +139,17 @@ class ExecContext : public ::ExecContext
     RegVal
     readIntRegOperand(const StaticInst *si, int renamed_idx) override
     {
-        return thread.readIntReg((RegIndex)renamed_idx);
+        if (renamed_idx < 32) {
+            // compatible for scalar read
+            int idx = renamed_idx;
+            assert(idx == 0 || idx == 1);
+            const RegId& reg = si->srcRegIdx(idx);
+            assert(reg.isIntReg());
+            return thread.readIntReg(reg.index());
+        } else {
+            return additional_regs[renamed_idx - 32];
+            //return thread.readIntReg((RegIndex)renamed_idx);
+        }
     }
 
     RegVal
@@ -190,9 +203,13 @@ class ExecContext : public ::ExecContext
     void
     setIntRegOperand(const StaticInst *si, int idx, RegVal val) override
     {
-        const RegId& reg = si->destRegIdx(idx);
-        assert(reg.isIntReg());
-        thread.setIntReg(reg.index(), val);
+        if(idx < 32) {
+            const RegId& reg = si->destRegIdx(idx);
+            assert(reg.isIntReg());
+            thread.setIntReg(reg.index(), val);
+        } else {
+            additional_regs[idx - 32] = val;
+        }
     }
 
     void

@@ -1269,8 +1269,8 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
                         if (vector_insn->vd() != 0) {
                             DPRINTF(CpuVectorIssue,"Setting register: %d ,"
                                 " with value : %d\n",vector_insn->vd(), gvl);
-                            // SJCTODO:SET
-                            xc->setIntRegOperand(vector_insn,0,gvl);
+                            xc->setIntRegOperand(vector_insn,cpu.ve_interface->getRenamedRegIndex(
+                                        vector_insn, 0),gvl);
                         }
                         src1 = gvl;
                         src2 = vtype;
@@ -1278,8 +1278,8 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
                         //bool vx_src = (vector_insn->func3()==4) || (vector_insn->func3()==6);
                         bool vf_src = (vector_insn->func3() == 5) && vector_insn->isVectorInstArith();
                         // bool vi_src = (vector_insn->func3()==3);
-                        // readIntRegOperand is renamed
-                        // xc->readIntRegOperand(vector_insn,0);
+                        // readIntRegOperan is renamed
+                        // xc->readIntRegOperan(vector_insn,0);
                         src1 = (vf_src) ? xc->readFloatRegOperandBits(vector_insn,0) :
                                 xc->readIntRegOperand(
                                     NULL, cpu.ve_interface->getRenamedRegIndex(

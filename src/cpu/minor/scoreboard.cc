@@ -232,6 +232,7 @@ Scoreboard::canInstIssue(MinorDynInstPtr inst,
     /* Where relative latencies are given, the default is the last
      *  one as that allows the rel. lat. list to be shorted than the
      *  number of src. regs */
+     // where does that come from?
     if (src_reg_relative_latencies &&
         src_reg_relative_latencies->size() != 0)
     {
