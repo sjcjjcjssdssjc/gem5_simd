@@ -1257,7 +1257,7 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
                         uint64_t vtype = (vsetvl) ?
                             xc->readIntRegOperand(
                                     NULL, cpu.ve_interface->getRenamedRegIndex(
-                                        vector_insn, 1));
+                                        vector_insn, 1)):
                             (uint64_t)vector_insn->vtype();
                         uint64_t gvl = cpu.ve_interface->reqAppVectorLength(
                             rvl,vtype,(vector_insn->vs1()==0));
