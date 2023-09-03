@@ -84,9 +84,11 @@ VectorEngineInterface::getRenamedRegIndex(RiscvISA::VectorStaticInst* vinst, int
     //do arch exploration
     uint64_t src1 = vector_engine->vector_rename->get_preg_ratscalar(vinst->rs1());
     uint64_t src2 = vector_engine->vector_rename->get_preg_ratscalar(vinst->rs2());
+    uint64_t dst = vector_engine->vector_rename->get_preg_ratscalar(vinst->rd());
     //TODO:get value
-    if (!idx) return src1;
-    else return src2;
+    if (idx == 0) return src1;
+    else if (idx == 1) return src2;
+    else return dst;
 }
 
 bool

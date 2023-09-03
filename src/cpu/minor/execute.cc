@@ -1265,8 +1265,9 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
                         if (vector_insn->vd() != 0) {
                             DPRINTF(CpuVectorIssue,"Setting register: %d ,"
                                 " with value : %d\n",vector_insn->vd(), gvl);
+                            // NOT registered in ROB so not set status
                             xc->setIntRegOperand(vector_insn,cpu.ve_interface->getRenamedRegIndex(
-                                        vector_insn, 0), gvl);
+                                        vector_insn, -1), gvl);
                         }
                         src1 = gvl;
                         src2 = vtype;
@@ -1283,6 +1284,8 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
                         src2 = xc->readIntRegOperand(
                                     NULL, cpu.ve_interface->getRenamedRegIndex(
                                         vector_insn, 1));
+                        xc->setRenamedStatus(BEING_RENAMED, NULL, 
+                        cpu.ve_interface->getRenamedRegIndex(vector_insn, -1));
                     }
 
                     DPRINTF(CpuVectorIssue,"Sending vector isnt to the Vector"

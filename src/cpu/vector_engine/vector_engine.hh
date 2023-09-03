@@ -208,7 +208,7 @@ public:
     bool vf_op;
     bool vi_op;
 
-    bool dst_write_ena;
+    bool write_vector_dst;
 
     uint8_t num_clusters;
     uint8_t num_lanes;

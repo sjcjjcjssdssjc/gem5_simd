@@ -232,8 +232,8 @@ VectorLane::issue(VectorEngine& vector_wrapper,
                     xc->setIntRegOperand(
                         dyn_insn->get_VectorStaticInst(),
                         (uint64_t)dyn_insn->get_renamed_dst(), scalar_data);
-                    xc->setRenamedStatus(
-                        AFTER_RENAME, dyn_insn->get_VectorStaticInst(), 0);
+                    //another way:rob
+                    xc->setRenamedStatus(NOT_RENAMED, dyn_insn->get_VectorStaticInst(), 0);
                     DPRINTF(VectorLane,
                         "Writting Int Register: %d ,data: 0x%x \n",
                         (uint64_t)dyn_insn->get_renamed_dst(), scalar_data);

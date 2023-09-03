@@ -3,6 +3,6 @@
 
 enum RenamedStatus {
     NOT_RENAMED = 0,
-    BEING_RENAME = 1,
+    BEING_RENAMED = 1,
     AFTER_RENAME = 2
 }

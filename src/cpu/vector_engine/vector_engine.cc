@@ -39,6 +39,7 @@
 #include "base/logging.hh"
 #include "base/types.hh"
 #include "cpu/translation.hh"
+#include "cpu/reg_num.h"
 #include "debug/VectorEngine.hh"
 #include "debug/VectorEngineInfo.hh"
 #include "debug/VectorInst.hh"
@@ -227,6 +228,7 @@ VectorEngine::renameVectorInst(RiscvISA::VectorStaticInst& insn, VectorDynInst *
     uint64_t Prs1,Prs2;
 
     vd = insn.vd();
+    rd = insn.rd();
     vs1 = insn.vs1();
     vs2 = insn.vs2();
     vs3 = insn.vs3();
@@ -292,8 +294,10 @@ VectorEngine::renameVectorInst(RiscvISA::VectorStaticInst& insn, VectorDynInst *
     }
     else if (insn.isVectorInstArith()) {
         PMask = masked_op ? vector_rename->get_preg_rat(0) : 1024;
-        PDst = (dst_write_ena) ? vector_rename->get_frl() : 1024;
-        POldDst = (dst_write_ena) ? vector_rename->get_preg_rat(vd) : 1024;
+        PDst = (write_vector_dst) ? 
+                vector_rename->get_frl() : vector_rename->get_frl_scalar();
+        POldDst = (write_vector_dst) ? vector_rename->get_preg_rat(vd) :
+                    vector_rename->get_preg_ratscalar(rd);
         Pvs2 = vector_rename->get_preg_rat(vs2);
 
         vector_dyn_insn->set_renamed_mask(PMask);
@@ -310,12 +314,16 @@ VectorEngine::renameVectorInst(RiscvISA::VectorStaticInst& insn, VectorDynInst *
             vector_dyn_insn->set_renamed_src1(Prs1);
         }
 
-        // dst_write_ena set when instruction has a vector destination register
-        if (dst_write_ena) {
+        // write_vector_dst set when instruction has a vector destination register
+        if (write_vector_dst) {
             // Setting the New Destination in the RAT structure
             // Setting to 0 the new physical destinatio valid bit
             vector_rename->set_preg_rat(vd,PDst);
             vector_reg_validbit->set_preg_valid_bit(PDst, 0);
+        } else {
+            vector_rename->set_preg_ratscalar(rd,PDst);
+            vector_reg_validbit->set_preg_valid_bit(PDst, 0);
+            //SJCTODO:rename way
         }
     } else {
         panic("Invalid Vector Instruction insn=%#h\n", insn.machInst);
@@ -326,6 +334,7 @@ void
 VectorEngine::dispatch(RiscvISA::VectorStaticInst& insn, ExecContextPtr& xc,
     uint64_t src1,uint64_t src2,std::function<void()> dependencie_callback) {
     if (insn.isVecConfig()) {
+        // NO ROB
         last_vtype = src2;
         last_vl = src1;
         dependencie_callback();
@@ -360,7 +369,7 @@ VectorEngine::dispatch(RiscvISA::VectorStaticInst& insn, ExecContextPtr& xc,
         vector_inst_queue->startTicking(*this/*,dependencie_callback*/);
     }
 
-    dst_write_ena = !insn.VectorToScalar();
+    write_vector_dst = insn.VectorToScalar();
 
     VectorDynInst *vector_dyn_insn = new VectorDynInst();
     //insn.dyn_insn = vector_dyn_insn;
@@ -383,18 +392,20 @@ VectorEngine::dispatch(RiscvISA::VectorStaticInst& insn, ExecContextPtr& xc,
         printMemInst(insn,vector_dyn_insn);
     }
     else if (insn.isVectorInstArith()) {
-        if (dst_write_ena) {
+        if (write_vector_dst) {
             dependencie_callback();
-            bool to_scalar = insn.VectorToScalar();
             uint32_t rob_entry = vector_rob->set_rob_entry(
-                vector_dyn_insn->get_renamed_old_dst(), 1,
-                to_scalar);
+                vector_dyn_insn->get_renamed_old_dst(), 1, 0);
             vector_dyn_insn->set_rob_num(rob_entry);
             vector_inst_queue->Instruction_Queue.push_back(
             new InstQueue::QueueEntry(insn,vector_dyn_insn,xc,
             NULL,src1,src2,last_vtype,last_vl));
         } else {
-            uint32_t rob_entry = vector_rob->set_rob_entry(0, 0, 0);
+            //ExecContextPtr& xc, uint32_t old_dst,
+            //bool valid_old_dst, bool rename_scalar
+            uint32_t rob_entry = vector_rob->set_rob_entry(
+                vector_dyn_insn->get_renamed_old_dst(), 1, 1);
+            xc->setRenamedStatus(AFTER_RENAMED, insn, 0);
             vector_dyn_insn->set_rob_num(rob_entry);
             vector_inst_queue->Instruction_Queue.push_back(
             new InstQueue::QueueEntry(insn,vector_dyn_insn,xc,

@@ -85,6 +85,7 @@ class ExecContext : public ::ExecContext
     //SJCTODO: change arrsize to freelist size
     RegVal additional_regs[ADDITIONAL_REGNUM];
     RenamedStatus renamed_status[REG_NUM];
+    int renamed_cnt[REG_NUM];
 
     ExecContext (
         MinorCPU &cpu_,
@@ -100,6 +101,10 @@ class ExecContext : public ::ExecContext
         setPredicate(inst->readPredicate());
         setMemAccPredicate(inst->readMemAccPredicate());
         thread.setIntReg(TheISA::ZeroReg, 0);
+        for (int i = 0; i < REG_NUM; i++) {
+            renamed_status[i] = 0;
+            renamed_cnt[i] = 0;
+        }
     }
 
     ~ExecContext()
@@ -140,9 +145,30 @@ class ExecContext : public ::ExecContext
     }
 
     void
-    setRenamedStatus(RenamedStatus status, int idx)
+    setRenamedStatus(RenamedStatus to_status, const StaticInst *si, int i)
     {
-        renamed_status[idx] = status;
+        int idx = i;
+        if (si) idx = si->destRegIdx(i);
+        if (to_status == NOT_RENAMED) {
+            renamed_cnt[idx]--;
+            assert(renamed_cnt >= 0);
+            if (renamed_cnt[idx] >= 1) {
+                return;
+            }
+        } else if (to_status == AFTER_RENAMED) {
+            renamed_cnt[idx]++;
+        } else {
+            assert(renamed_cnt[idx] == 0);
+        }
+        renamed_status[idx] = to_status;
+    }
+
+    int
+    getRenamedStatus(const StaticInst *si, int i)
+    {
+        int idx = i;
+        if (si) idx = si->srcRegIdx(i);
+        return renamed_status[idx];
     }
 
     RegVal
@@ -211,12 +237,11 @@ class ExecContext : public ::ExecContext
     void
     setIntRegOperand(const StaticInst *si, int idx, RegVal val) override
     {
-        if(idx < 2) {
+        if (idx < 32) {
             const RegId& reg = si->destRegIdx(idx);
             assert(reg.isIntReg());
             thread.setIntReg(reg.index(), val);
         } else {
-            assert(idx >= 32);
             additional_regs[idx - 32] = val;
         }
     }
