@@ -40,6 +40,7 @@
 #include "cpu/vector_engine/vmu/read_timing_unit.hh"
 #include "cpu/vector_engine/vmu/write_timing_unit.hh"
 #include "cpu/vector_engine/vpu/multilane_wrapper/datapath.hh"
+#include "cpu/reg_num.h"
 #include "debug/VectorEngineInfo.hh"
 #include "debug/VectorLane.hh"
 #include "params/VectorLane.hh"
@@ -222,7 +223,7 @@ VectorLane::issue(VectorEngine& vector_wrapper,
                 if (move_to_core_float) {
                     xc->setFloatRegOperandBits(
                         dyn_insn->get_VectorStaticInst(),
-                        (uint64_t)dyn_insn->get_renamed_dst(), scalar_data);
+                        0, scalar_data);
                     DPRINTF(VectorLane,
                         "Writting Float Register: %d ,data: 0x%x \n",
                         (uint64_t)dyn_insn->get_renamed_dst(), scalar_data);
@@ -231,6 +232,8 @@ VectorLane::issue(VectorEngine& vector_wrapper,
                     xc->setIntRegOperand(
                         dyn_insn->get_VectorStaticInst(),
                         (uint64_t)dyn_insn->get_renamed_dst(), scalar_data);
+                    xc->setRenamedStatus(
+                        AFTER_RENAME, dyn_insn->get_VectorStaticInst(), 0);
                     DPRINTF(VectorLane,
                         "Writting Int Register: %d ,data: 0x%x \n",
                         (uint64_t)dyn_insn->get_renamed_dst(), scalar_data);
@@ -242,12 +245,10 @@ VectorLane::issue(VectorEngine& vector_wrapper,
                 this->occupied = false;
                 done_callback(NoFault);
             });
-    }
-    else {
+    } else {
         bool is_slide = insn.is_slide();
         uint64_t slide_count = 0;
-        if (is_slide)
-        {
+        if (is_slide) {
             slide_count = (insn.func3() == 3) ? insn.vs1() :
                 (insn.func3() == 4) ? src1 : (insn.func3() == 6) ? 1 : 0;
             assert(slide_count < vl_count);
@@ -261,8 +262,7 @@ VectorLane::issue(VectorEngine& vector_wrapper,
                 assert(size == DST_SIZE);
                 //vmfeq_vv:compare two source operands and write the comparison result to a mask register.
                 //move data array into ndata
-                if (!vector_to_scalar)
-                {
+                if (!vector_to_scalar) {
                     if (mask_dst) {
                         //mask_dst_data = *(uint8_t*)data;
                         uint8_t* ndata = new uint8_t[DST_SIZE];
@@ -277,13 +277,10 @@ VectorLane::issue(VectorEngine& vector_wrapper,
                         if (DST_SIZE == 2) { DPRINTF(VectorLane, "Writting mask Rrgister: %X\n", *(uint16_t*)ndata); }
                         if (DST_SIZE == 1) { DPRINTF(VectorLane, "Writting mask Rrgister: %X\n", *(uint8_t*)ndata); }
                         delete data;
-                    }
-                    else {
+                    } else {
                         this->dstWriter->queueData(data);
                     }
-                }
-                else
-                {
+                } else {
                     /*
                      * vector_to_scalar refers to the instructions which are
                      * executed in the datapath, such as vmfirst_m and vmpopc_m,

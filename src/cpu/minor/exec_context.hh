@@ -56,6 +56,8 @@
 #include "mem/request.hh"
 #include "debug/MinorExecute.hh"
 
+#include "cpu/reg_num.h"
+
 namespace Minor
 {
 
@@ -81,7 +83,8 @@ class ExecContext : public ::ExecContext
     MinorDynInstPtr inst;
 
     //SJCTODO: change arrsize to freelist size
-    RegVal additional_regs[5];
+    RegVal additional_regs[ADDITIONAL_REGNUM];
+    RenamedStatus renamed_status[REG_NUM];
 
     ExecContext (
         MinorCPU &cpu_,
@@ -136,19 +139,24 @@ class ExecContext : public ::ExecContext
             size, addr, flags, nullptr, std::move(amo_op));
     }
 
-    RegVal
-    readIntRegOperand(const StaticInst *si, int renamed_idx) override
+    void
+    setRenamedStatus(RenamedStatus status, int idx)
     {
-        if (renamed_idx < 32) {
+        renamed_status[idx] = status;
+    }
+
+    RegVal
+    readIntRegOperand(const StaticInst *si, int idx) override
+    {
+        if (idx < 32) {
             // compatible for scalar read
-            int idx = renamed_idx;
             assert(idx == 0 || idx == 1);
             const RegId& reg = si->srcRegIdx(idx);
             assert(reg.isIntReg());
             return thread.readIntReg(reg.index());
         } else {
-            return additional_regs[renamed_idx - 32];
-            //return thread.readIntReg((RegIndex)renamed_idx);
+            return additional_regs[idx - 32];
+            //return thread.readIntReg((RegIndex)idx);
         }
     }
 
@@ -203,11 +211,12 @@ class ExecContext : public ::ExecContext
     void
     setIntRegOperand(const StaticInst *si, int idx, RegVal val) override
     {
-        if(idx < 32) {
+        if(idx < 2) {
             const RegId& reg = si->destRegIdx(idx);
             assert(reg.isIntReg());
             thread.setIntReg(reg.index(), val);
         } else {
+            assert(idx >= 32);
             additional_regs[idx - 32] = val;
         }
     }

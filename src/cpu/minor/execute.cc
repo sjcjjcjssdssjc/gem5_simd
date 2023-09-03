@@ -1114,8 +1114,7 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
         !branch.isStreamChange() && /* No real branch */
         fault == NoFault && /* No faults */
         completed_inst && /* Still finding instructions to execute */
-        num_insts_committed != commitLimit /* Not reached commit limit */
-        ) {
+        num_insts_committed != commitLimit) { /* Not reached commit limit */
         if (only_commit_microops) {
             DPRINTF(MinorInterrupt, "Committing tail of insts before"
                 " interrupt: %s\n",
@@ -1162,8 +1161,7 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
             updateBranchData(thread_id, BranchData::UnpredictedBranch,
                 MinorDynInst::bubble(), thread->pcState(), branch);
         } else if (mem_response &&
-            num_mem_refs_committed < memoryCommitLimit)
-        {
+            num_mem_refs_committed < memoryCommitLimit) {
             /* Try to commit from the memory responses next */
             discard_inst = inst->id.streamSeqNum !=
                            ex_info.streamSeqNum || discard;
@@ -1229,14 +1227,13 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
                     *inst, ex_info.streamSeqNum);
             }
 
-            if(!discard_inst)
-            {
+            if (!discard_inst) {
                 RiscvISA::VectorStaticInst *vector_insn =
                     dynamic_cast<RiscvISA::VectorStaticInst*>
                     (inst->staticInst.get());
 
-                if (!cpu.ve_interface->requestGrant(vector_insn))
-                {
+                if (!cpu.ve_interface->requestGrant(vector_insn)) {
+                    // cause?
                     DPRINTF(CpuVectorIssue,"The Vector Engine could not accept"
                     "the instruction : %s \n",*inst);
                     completed_inst = false;
@@ -1245,12 +1242,12 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
                     ExecContextPtr xc = std::make_shared<ExecContext>(cpu,
                         *cpu.threads[thread_id],*this, inst);
 
-                    uint64_t  pc = inst->pc.instAddr();
+                    uint64_t pc = inst->pc.instAddr();
                     vector_insn->setPC(pc);
-                    uint64_t src1,src2;
+                    uint64_t src1, src2;
 
                     if (vector_insn->isVecConfig()) {
-                        bool vsetvl = (vector_insn->getName() =="vsetvl");
+                        bool vsetvl = (vector_insn->getName() == "vsetvl");
                         uint64_t rvl = xc->readIntRegOperand(
                                     NULL, cpu.ve_interface->getRenamedRegIndex(
                                         vector_insn, 0));
@@ -1260,24 +1257,23 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
                                         vector_insn, 1)):
                             (uint64_t)vector_insn->vtype();
                         uint64_t gvl = cpu.ve_interface->reqAppVectorLength(
-                            rvl,vtype,(vector_insn->vs1()==0));
+                            rvl,vtype,(vector_insn->vs1() == 0));
 
                         DPRINTF(CpuVectorIssue,"vsetvl: %d, rvl: %d vtype: %d gvl: %d \n",vsetvl,rvl,vtype,gvl );
-
                         xc->setMiscReg(RiscvISA::MISCREG_VL,gvl);
                         xc->setMiscReg(RiscvISA::MISCREG_VTYPE,vtype);
                         if (vector_insn->vd() != 0) {
                             DPRINTF(CpuVectorIssue,"Setting register: %d ,"
                                 " with value : %d\n",vector_insn->vd(), gvl);
                             xc->setIntRegOperand(vector_insn,cpu.ve_interface->getRenamedRegIndex(
-                                        vector_insn, 0),gvl);
+                                        vector_insn, 0), gvl);
                         }
                         src1 = gvl;
                         src2 = vtype;
                     } else {
-                        //bool vx_src = (vector_insn->func3()==4) || (vector_insn->func3()==6);
+                        bool vx_src = (vector_insn->func3() == 4) || (vector_insn->func3() == 6);
                         bool vf_src = (vector_insn->func3() == 5) && vector_insn->isVectorInstArith();
-                        // bool vi_src = (vector_insn->func3()==3);
+                        bool vi_src = (vector_insn->func3() == 3);
                         // readIntRegOperan is renamed
                         // xc->readIntRegOperan(vector_insn,0);
                         src1 = (vf_src) ? xc->readFloatRegOperandBits(vector_insn,0) :
@@ -1304,8 +1300,7 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
                     });
                 }
             }
-            else
-            {
+            else {
                 /* Discard instruction */
                 completed_inst = true;
             }
@@ -1720,13 +1715,13 @@ Execute::evaluate()
                 head_inst_might_commit = true;
             } else if (head_inst.inst->staticInst->isVector()) {
                 head_inst_might_commit = true;
+                // why break
                 break;
             } else {
                 FUPipeline *fu = funcUnits[head_inst.inst->fuIndex];
                 if ((fu->stalled &&
                      fu->front().inst->id == head_inst.inst->id) ||
-                     lsq.findResponse(head_inst.inst))
-                {
+                     lsq.findResponse(head_inst.inst)) {
                     head_inst_might_commit = true;
                     break;
                 }
@@ -1876,6 +1871,7 @@ Execute::getCommittingThread()
 #if THE_ISA == RISCV_ISA
             can_execute_vector_inst = inst->staticInst->isVector();
 #endif // THE_ISA == RISCV_ISA
+            //why LSQ?
             can_commit_insts = can_commit_insts &&
                 (!inst->inLSQ || (lsq.findResponse(inst) != NULL));
 

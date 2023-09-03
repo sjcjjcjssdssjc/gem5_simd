@@ -134,8 +134,8 @@ ReorderBuffer::rob_empty()
 }
 
 uint32_t
-ReorderBuffer::set_rob_entry(uint32_t old_dst, bool valid_old_dst,
-                            bool rename_scalar)
+ReorderBuffer::set_rob_entry(ExecContextPtr& xc, uint32_t old_dst, 
+                            bool valid_old_dst, bool rename_scalar)
 {
     assert(valid_elements < ROB_Size);
 
