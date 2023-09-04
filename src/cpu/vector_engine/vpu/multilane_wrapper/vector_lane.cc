@@ -29,6 +29,7 @@
  */
 
 #include "cpu/vector_engine/vpu/multilane_wrapper/vector_lane.hh"
+#include "cpu/minor/exec_context.hh"
 
 #include <cassert>
 #include <cstdint>
@@ -232,8 +233,14 @@ VectorLane::issue(VectorEngine& vector_wrapper,
                     xc->setIntRegOperand(
                         dyn_insn->get_VectorStaticInst(),
                         (uint64_t)dyn_insn->get_renamed_dst(), scalar_data);
-                    //another way:rob
-                    xc->setRenamedStatus(NOT_RENAMED, dyn_insn->get_VectorStaticInst(), 0);
+                    xc->setIntRegOperand(
+                        dyn_insn->get_VectorStaticInst(), 0, scalar_data);
+                    xc->setIntRegOperand(NULL,
+                        -(uint64_t)dyn_insn->get_renamed_dst(),
+                        Minor::NOT_RENAMED);
+                    //xc->setRenamedStatus(Minor::NOT_RENAMED, \
+                                            NULL, \
+                                            (uint64_t)dyn_insn->get_renamed_dst());
                     DPRINTF(VectorLane,
                         "Writting Int Register: %d ,data: 0x%x \n",
                         (uint64_t)dyn_insn->get_renamed_dst(), scalar_data);

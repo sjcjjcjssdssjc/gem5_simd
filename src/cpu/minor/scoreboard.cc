@@ -36,6 +36,7 @@
  */
 
 #include "cpu/minor/scoreboard.hh"
+#include "cpu/minor/exec_context.hh"
 
 #include "arch/registers.hh"
 #include "cpu/reg_class.hh"
@@ -211,7 +212,7 @@ Scoreboard::clearInstDests(MinorDynInstPtr inst, bool clear_unpredictable)
 }
 
 bool
-Scoreboard::canInstIssue(MinorDynInstPtr inst,
+Scoreboard::canInstIssue(MinorCPU &cpu, MinorDynInstPtr inst,
     const std::vector<Cycles> *src_reg_relative_latencies,
     const std::vector<bool> *cant_forward_from_fu_indices,
     Cycles now, ThreadContext *thread_context)
@@ -246,11 +247,13 @@ Scoreboard::canInstIssue(MinorDynInstPtr inst,
     while (src_index < num_srcs && /* More registers */
         ret /* Still possible */)
     {
-        RegId reg = flattenRegIndex(staticInst->srcRegIdx(src_index),
+        RegId original_reg = flattenRegIndex(staticInst->srcRegIdx(src_index),
             thread_context);
+        RegIndex& regid = original_reg.index();
+        //if ()
         unsigned short int index;
 
-        if (findIndex(reg, index)) {
+        if (findIndex(original_reg, index)) {
             bool cant_forward = fuIndices[index] != 1 &&
                 cant_forward_from_fu_indices &&
                 index < cant_forward_from_fu_indices->size() &&

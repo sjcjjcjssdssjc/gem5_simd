@@ -47,6 +47,7 @@
 #include "cpu/minor/cpu.hh"
 #include "cpu/minor/dyn_inst.hh"
 #include "cpu/minor/trace.hh"
+#include "cpu/exec_context.hh"
 
 namespace Minor
 {
@@ -128,7 +129,7 @@ class Scoreboard : public Named
 
     /** Can this instruction be issued.  Are any of its source registers
      *  due to be written by other marked-up instructions in flight */
-    bool canInstIssue(MinorDynInstPtr inst,
+    bool canInstIssue(MinorCPU &cpu, MinorDynInstPtr inst,
         const std::vector<Cycles> *src_reg_relative_latencies,
         const std::vector<bool> *cant_forward_from_fu_indices,
         Cycles now, ThreadContext *thread_context);

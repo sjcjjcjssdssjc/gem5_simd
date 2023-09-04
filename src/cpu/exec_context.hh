@@ -50,6 +50,7 @@
 #include "cpu/static_inst_fwd.hh"
 #include "cpu/translation.hh"
 #include "mem/request.hh"
+#include "cpu/reg_num.h"
 
 /**
  * The ExecContext is an abstract base class the provides the
@@ -207,6 +208,7 @@ class ExecContext {
      * side effects due to reading that register.
      */
     virtual RegVal readMiscReg(int misc_reg) = 0;
+    //virtual void setRenamedStatus(Minor::RenamedStatus to_status, const StaticInst *si, int i) = 0;
 
     /**
      * Sets a miscellaneous register, handling any architectural

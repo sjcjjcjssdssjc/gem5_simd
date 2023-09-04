@@ -604,7 +604,7 @@ Execute::issue(ThreadID thread_id)
             issued = false;
         } else if (inst->staticInst->isVector()) {
             // in execute stage(vectorengine)
-            if (!scoreboard[thread_id].canInstIssue(inst, NULL, NULL,
+            if (!scoreboard[thread_id].canInstIssue(cpu, inst, NULL, NULL,
                 cpu.curCycle(), cpu.getContext(thread_id))) {
                 DPRINTF(CpuVectorIssue,"Vector Ins blocked by scoreboard: %s"
                     "for thread %d\n",*inst, thread.streamSeqNum);
@@ -707,7 +707,7 @@ Execute::issue(ThreadID thread_id)
                         DPRINTF(MinorExecute, "Can't issue inst: %s as extra"
                             " decoding is suppressing it\n",
                             *inst);
-                    } else if (!scoreboard[thread_id].canInstIssue(inst,
+                    } else if (!scoreboard[thread_id].canInstIssue(cpu, inst,
                         src_latencies, cant_forward_from_fu_indices,
                         cpu.curCycle(), cpu.getContext(thread_id)))
                     {
@@ -1284,7 +1284,10 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
                         src2 = xc->readIntRegOperand(
                                     NULL, cpu.ve_interface->getRenamedRegIndex(
                                         vector_insn, 1));
-                        xc->setRenamedStatus(BEING_RENAMED, NULL, 
+                        xc->setIntRegOperand(NULL,
+                            -cpu.ve_interface->getRenamedRegIndex(vector_insn, -1),
+                            BEING_RENAMED);
+                        //xc->setRenamedStatus(BEING_RENAMED, NULL, \
                         cpu.ve_interface->getRenamedRegIndex(vector_insn, -1));
                     }
 
@@ -1698,7 +1701,7 @@ Execute::evaluate()
          * we are active next cycle yet */
         for (auto inst : next_issuable_insts) {
             if (!fu->stalled && fu->provides(inst->staticInst->opClass()) &&
-                scoreboard[inst->id.threadId].canInstIssue(inst,
+                scoreboard[inst->id.threadId].canInstIssue(cpu, inst,
                     NULL, NULL, cpu.curCycle() + Cycles(1),
                     cpu.getContext(inst->id.threadId))) {
                 can_issue_next = true;

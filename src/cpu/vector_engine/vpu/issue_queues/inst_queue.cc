@@ -29,6 +29,7 @@
  */
 
 #include "cpu/vector_engine/vpu/issue_queues/inst_queue.hh"
+#include "cpu/vector_engine/vpu/register_file/vector_reg_valid_bit.hh"
 
 #include <algorithm>
 #include <cassert>
@@ -205,10 +206,9 @@ InstQueue::evaluate()
                 uint64_t renamed_dst = Instruction->dyn_insn->get_renamed_dst();
                 if (wb_enable) {
                     //only read one(can be wrong)
-                    vectorwrapper->vector_reg_validbit->
-                    set_preg_valid_bit(renamed_dst, 1);
+                    vectorwrapper->vector_reg_validbit->set_preg_valid_bit(renamed_dst, 1);
                     if (Instruction->insn.VectorToScalar()) {
-                        set_pscalar_reg_valid_bit(renamed_dst, 1);
+                        vectorwrapper->vector_reg_validbit->set_pscalar_reg_valid_bit(renamed_dst, 1);
                     }
                 }
                 // Setting the executed bit in the ROB
@@ -320,10 +320,9 @@ InstQueue::evaluate()
                     Mem_Instruction->dyn_insn->get_renamed_dst();
                     // SETTING VALID BIT
                     if (wb_enable) {
-                        vectorwrapper->vector_reg_validbit->
-                        set_preg_valid_bit(renamed_dst, 1);
+                        vectorwrapper->vector_reg_validbit->set_preg_valid_bit(renamed_dst, 1);
                         if (Mem_Instruction->insn.VectorToScalar()) {
-                            set_pscalar_reg_valid_bit(renamed_dst, 1);
+                            vectorwrapper->vector_reg_validbit->set_pscalar_reg_valid_bit(renamed_dst, 1);
                         }
                     }
 

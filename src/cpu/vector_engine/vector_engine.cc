@@ -29,6 +29,7 @@
  */
 
 #include "cpu/vector_engine/vector_engine.hh"
+#include "cpu/vector_engine/vpu/register_file/vector_reg_valid_bit.hh"
 
 #include <cassert>
 #include <string>
@@ -39,7 +40,7 @@
 #include "base/logging.hh"
 #include "base/types.hh"
 #include "cpu/translation.hh"
-#include "cpu/reg_num.h"
+#include "cpu/minor/exec_context.hh"
 #include "debug/VectorEngine.hh"
 #include "debug/VectorEngineInfo.hh"
 #include "debug/VectorInst.hh"
@@ -222,7 +223,7 @@ VectorEngine::renameVectorInst(RiscvISA::VectorStaticInst& insn, VectorDynInst *
      * for LMUL = 2 it is needed to assign 2 physical registers
      * for LMUL = 1 it is needed to assign 1 physical register
      */
-    uint64_t vd;
+    uint64_t vd, rd;
     uint64_t vs1,vs2,vs3;
     uint64_t rs1,rs2;
     uint64_t Prs1,Prs2;
@@ -383,7 +384,7 @@ VectorEngine::dispatch(RiscvISA::VectorStaticInst& insn, ExecContextPtr& xc,
     if (insn.isVectorInstMem()) {
         dependencie_callback();
         uint32_t rob_entry = vector_rob->
-        set_rob_entry(vector_dyn_insn->get_renamed_old_dst(),
+        set_rob_entry(xc, vector_dyn_insn->get_renamed_old_dst(),
                       insn.isLoad(), 0);
         vector_dyn_insn->set_rob_num(rob_entry);
         vector_inst_queue->Memory_Queue.push_back(
@@ -395,7 +396,7 @@ VectorEngine::dispatch(RiscvISA::VectorStaticInst& insn, ExecContextPtr& xc,
         if (write_vector_dst) {
             dependencie_callback();
             uint32_t rob_entry = vector_rob->set_rob_entry(
-                vector_dyn_insn->get_renamed_old_dst(), 1, 0);
+                xc, vector_dyn_insn->get_renamed_old_dst(), 1, 0);
             vector_dyn_insn->set_rob_num(rob_entry);
             vector_inst_queue->Instruction_Queue.push_back(
             new InstQueue::QueueEntry(insn,vector_dyn_insn,xc,
@@ -404,8 +405,13 @@ VectorEngine::dispatch(RiscvISA::VectorStaticInst& insn, ExecContextPtr& xc,
             //ExecContextPtr& xc, uint32_t old_dst,
             //bool valid_old_dst, bool rename_scalar
             uint32_t rob_entry = vector_rob->set_rob_entry(
-                vector_dyn_insn->get_renamed_old_dst(), 1, 1);
-            xc->setRenamedStatus(AFTER_RENAMED, insn, 0);
+                xc, vector_dyn_insn->get_renamed_old_dst(), 1, 1);
+            xc->setIntRegOperand(NULL,
+                -vector_dyn_insn->get_renamed_dst(),
+                Minor::AFTER_RENAME);
+            //xc->setRenamedStatus(Minor::AFTER_RENAME, \
+                                    NULL, \
+                                    vector_dyn_insn->get_renamed_dst());
             vector_dyn_insn->set_rob_num(rob_entry);
             vector_inst_queue->Instruction_Queue.push_back(
             new InstQueue::QueueEntry(insn,vector_dyn_insn,xc,

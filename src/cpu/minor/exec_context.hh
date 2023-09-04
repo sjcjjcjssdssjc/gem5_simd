@@ -102,7 +102,7 @@ class ExecContext : public ::ExecContext
         setMemAccPredicate(inst->readMemAccPredicate());
         thread.setIntReg(TheISA::ZeroReg, 0);
         for (int i = 0; i < REG_NUM; i++) {
-            renamed_status[i] = 0;
+            renamed_status[i] = NOT_RENAMED;
             renamed_cnt[i] = 0;
         }
     }
@@ -148,14 +148,14 @@ class ExecContext : public ::ExecContext
     setRenamedStatus(RenamedStatus to_status, const StaticInst *si, int i)
     {
         int idx = i;
-        if (si) idx = si->destRegIdx(i);
+        if (si) idx = si->destRegIdx(i).index();
         if (to_status == NOT_RENAMED) {
             renamed_cnt[idx]--;
-            assert(renamed_cnt >= 0);
+            assert(renamed_cnt[idx] >= 0);
             if (renamed_cnt[idx] >= 1) {
                 return;
             }
-        } else if (to_status == AFTER_RENAMED) {
+        } else if (to_status == AFTER_RENAME) {
             renamed_cnt[idx]++;
         } else {
             assert(renamed_cnt[idx] == 0);
@@ -167,7 +167,7 @@ class ExecContext : public ::ExecContext
     getRenamedStatus(const StaticInst *si, int i)
     {
         int idx = i;
-        if (si) idx = si->srcRegIdx(i);
+        if (si) idx = si->srcRegIdx(i).index();
         return renamed_status[idx];
     }
 
@@ -241,8 +241,26 @@ class ExecContext : public ::ExecContext
             const RegId& reg = si->destRegIdx(idx);
             assert(reg.isIntReg());
             thread.setIntReg(reg.index(), val);
-        } else {
+        } else if(idx > 0){
             additional_regs[idx - 32] = val;
+        } else {
+            // setRenamedStatus
+            idx = -idx;
+            RenamedStatus to_status = RenamedStatus(val);
+            idx /= 3;
+            if (si) idx = si->destRegIdx(idx).index();
+            if (to_status == NOT_RENAMED) {
+                renamed_cnt[idx]--;
+                assert(renamed_cnt[idx] >= 0);
+                if (renamed_cnt[idx] >= 1) {
+                    return;
+                }
+            } else if (to_status == AFTER_RENAME) {
+                renamed_cnt[idx]++;
+            } else {
+                assert(renamed_cnt[idx] == 0);
+            }
+            renamed_status[idx] = to_status;
         }
     }
 
