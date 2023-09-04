@@ -577,6 +577,8 @@ Execute::issue(ThreadID thread_id)
         Fault fault = inst->fault;
         bool discarded = false;
         bool issued_mem_ref = false;
+        ExecContextPtr xc = std::make_shared<ExecContext>(cpu,
+                        *cpu.threads[thread_id],*this, inst);
 
         if (inst->isBubble()) {
             /* Skip */
@@ -604,7 +606,7 @@ Execute::issue(ThreadID thread_id)
             issued = false;
         } else if (inst->staticInst->isVector()) {
             // in execute stage(vectorengine)
-            if (!scoreboard[thread_id].canInstIssue(cpu, inst, NULL, NULL,
+            if (!scoreboard[thread_id].canInstIssue(xc, inst, NULL, NULL,
                 cpu.curCycle(), cpu.getContext(thread_id))) {
                 DPRINTF(CpuVectorIssue,"Vector Ins blocked by scoreboard: %s"
                     "for thread %d\n",*inst, thread.streamSeqNum);
@@ -707,7 +709,7 @@ Execute::issue(ThreadID thread_id)
                         DPRINTF(MinorExecute, "Can't issue inst: %s as extra"
                             " decoding is suppressing it\n",
                             *inst);
-                    } else if (!scoreboard[thread_id].canInstIssue(cpu, inst,
+                    } else if (!scoreboard[thread_id].canInstIssue(xc, inst,
                         src_latencies, cant_forward_from_fu_indices,
                         cpu.curCycle(), cpu.getContext(thread_id)))
                     {
@@ -1700,12 +1702,15 @@ Execute::evaluate()
          * if the CPU should remain active, only run it if we aren't sure
          * we are active next cycle yet */
         for (auto inst : next_issuable_insts) {
-            if (!fu->stalled && fu->provides(inst->staticInst->opClass()) &&
-                scoreboard[inst->id.threadId].canInstIssue(cpu, inst,
+            if (!fu->stalled && fu->provides(inst->staticInst->opClass())) {
+                ExecContextPtr xc = std::make_shared<ExecContext>(cpu,
+                    *cpu.threads[inst->id.threadId],*this, inst);
+                if (scoreboard[inst->id.threadId].canInstIssue(xc, inst,
                     NULL, NULL, cpu.curCycle() + Cycles(1),
                     cpu.getContext(inst->id.threadId))) {
-                can_issue_next = true;
-                break;
+                        can_issue_next = true;
+                        break;
+                    }
             }
         }
     }

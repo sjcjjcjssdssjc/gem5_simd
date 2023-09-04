@@ -180,9 +180,13 @@ class ExecContext : public ::ExecContext
             const RegId& reg = si->srcRegIdx(idx);
             assert(reg.isIntReg());
             return thread.readIntReg(reg.index());
-        } else {
+        } else if (idx > 0){
             return additional_regs[idx - 32];
             //return thread.readIntReg((RegIndex)idx);
+        } else {
+            idx = -idx;
+            if (si) idx = si->srcRegIdx(idx).index();
+            return renamed_status[idx];
         }
     }
 

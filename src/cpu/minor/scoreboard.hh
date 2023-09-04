@@ -129,7 +129,7 @@ class Scoreboard : public Named
 
     /** Can this instruction be issued.  Are any of its source registers
      *  due to be written by other marked-up instructions in flight */
-    bool canInstIssue(MinorCPU &cpu, MinorDynInstPtr inst,
+    bool canInstIssue(ExecContextPtr xc, MinorDynInstPtr inst,
         const std::vector<Cycles> *src_reg_relative_latencies,
         const std::vector<bool> *cant_forward_from_fu_indices,
         Cycles now, ThreadContext *thread_context);

@@ -212,7 +212,7 @@ Scoreboard::clearInstDests(MinorDynInstPtr inst, bool clear_unpredictable)
 }
 
 bool
-Scoreboard::canInstIssue(MinorCPU &cpu, MinorDynInstPtr inst,
+Scoreboard::canInstIssue(ExecContextPtr xc, MinorDynInstPtr inst,
     const std::vector<Cycles> *src_reg_relative_latencies,
     const std::vector<bool> *cant_forward_from_fu_indices,
     Cycles now, ThreadContext *thread_context)
@@ -250,7 +250,10 @@ Scoreboard::canInstIssue(MinorCPU &cpu, MinorDynInstPtr inst,
         RegId original_reg = flattenRegIndex(staticInst->srcRegIdx(src_index),
             thread_context);
         RegIndex& regid = original_reg.index();
-        //if ()
+        //SJCTODO
+        if (xc->readIntRegOperand(NULL, regid) != 0) {
+            return false;
+        }
         unsigned short int index;
 
         if (findIndex(original_reg, index)) {
