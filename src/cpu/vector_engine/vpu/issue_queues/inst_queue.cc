@@ -204,8 +204,12 @@ InstQueue::evaluate()
                 bool wb_enable = !Instruction->insn.VectorToScalar();
                 uint64_t renamed_dst = Instruction->dyn_insn->get_renamed_dst();
                 if (wb_enable) {
+                    //only read one(can be wrong)
                     vectorwrapper->vector_reg_validbit->
                     set_preg_valid_bit(renamed_dst, 1);
+                    if (Instruction->insn.VectorToScalar()) {
+                        set_pscalar_reg_valid_bit(renamed_dst, 1);
+                    }
                 }
                 // Setting the executed bit in the ROB
                 uint16_t rob_num = Instruction->dyn_insn->get_rob_num();
@@ -318,6 +322,9 @@ InstQueue::evaluate()
                     if (wb_enable) {
                         vectorwrapper->vector_reg_validbit->
                         set_preg_valid_bit(renamed_dst, 1);
+                        if (Mem_Instruction->insn.VectorToScalar()) {
+                            set_pscalar_reg_valid_bit(renamed_dst, 1);
+                        }
                     }
 
                     // Setting the executed bit in the ROB

@@ -322,7 +322,7 @@ VectorEngine::renameVectorInst(RiscvISA::VectorStaticInst& insn, VectorDynInst *
             vector_reg_validbit->set_preg_valid_bit(PDst, 0);
         } else {
             vector_rename->set_preg_ratscalar(rd,PDst);
-            vector_reg_validbit->set_preg_valid_bit(PDst, 0);
+            vector_reg_validbit->set_pscalar_reg_valid_bit(PDst, 0);
             //SJCTODO:rename way
         }
     } else {
