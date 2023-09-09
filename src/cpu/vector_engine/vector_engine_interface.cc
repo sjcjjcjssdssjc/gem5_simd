@@ -100,8 +100,13 @@ VectorEngineInterface::getRenamedRegIndex(int idx)
 bool
 VectorEngineInterface::isIntRegIndexReady(RiscvISA::VectorStaticInst* vinst, int idx)
 {
-    const RegId& reg = vinst->srcRegIdx(idx);
-    uint64_t renamed_idx = vector_engine->vector_rename->get_preg_ratscalar(reg.index());
+    uint64_t renamed_idx;
+    if (vinst) {
+        int index = vinst->srcRegIdx(idx).index();
+        renamed_idx = vector_engine->vector_rename->get_preg_ratscalar(index);
+    } else {
+        renamed_idx = vector_engine->vector_rename->get_preg_ratscalar(idx);
+    }
     return vector_engine->vector_reg_validbit->get_preg_valid_bit(renamed_idx);
 }
 

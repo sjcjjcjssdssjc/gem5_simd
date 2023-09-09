@@ -264,7 +264,7 @@ Scoreboard::canInstIssue(ExecContextPtr xc,
         unsigned short int index;
 
         if (is_renamed) {
-            
+            ret = ve_interface->isIntRegIndexReady(NULL, index);
         } else if (findIndex(original_reg, index)) {
             bool cant_forward = fuIndices[index] != 1 &&
                 cant_forward_from_fu_indices &&
