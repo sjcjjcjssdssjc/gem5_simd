@@ -113,7 +113,7 @@ class Scoreboard : public Named
      *  numResults counts.  If mark_unpredictable is true, the inst's
      *  destination registers are marked as being unpredictable without
      *  an estimated retire time */
-    void markupInstDests(MinorDynInstPtr inst, Cycles retire_time,
+    void markupInstDests(ExecContextPtr xc, MinorDynInstPtr inst, Cycles retire_time,
         ThreadContext *thread_context, bool mark_unpredictable);
 
     /** Clear down the dependencies for this instruction.  clear_unpredictable
@@ -129,7 +129,8 @@ class Scoreboard : public Named
 
     /** Can this instruction be issued.  Are any of its source registers
      *  due to be written by other marked-up instructions in flight */
-    bool canInstIssue(ExecContextPtr xc, MinorDynInstPtr inst,
+    bool canInstIssue(ExecContextPtr xc,
+        VectorEngineInterface* ve_interface, MinorDynInstPtr inst,
         const std::vector<Cycles> *src_reg_relative_latencies,
         const std::vector<bool> *cant_forward_from_fu_indices,
         Cycles now, ThreadContext *thread_context);

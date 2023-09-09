@@ -121,7 +121,7 @@ dynInstAddTracing(MinorDynInstPtr inst, StaticInstPtr static_inst,
 void
 Decode::evaluate()
 {
-    //SJCTODO:
+
     /* Push input onto appropriate input buffer */
     if (!inp.outputWire->isBubble())
         inputBuffer[inp.outputWire->threadId].setTail(*inp.outputWire);

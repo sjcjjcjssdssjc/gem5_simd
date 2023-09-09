@@ -82,7 +82,7 @@ class ExecContext : public ::ExecContext
     /** Instruction for the benefit of memory operations and for PC */
     MinorDynInstPtr inst;
 
-    //SJCTODO: change arrsize to freelist size
+    //sjctodo: change arrsize to freelist size
     RegVal additional_regs[ADDITIONAL_REGNUM];
     RenamedStatus renamed_status[REG_NUM];
     int renamed_cnt[REG_NUM];

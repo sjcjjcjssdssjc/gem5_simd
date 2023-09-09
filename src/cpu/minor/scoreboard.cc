@@ -104,8 +104,10 @@ flattenRegIndex(const RegId& reg, ThreadContext *thread_context)
     return thread_context->flattenRegId(reg);
 }
 
+//self-self: ***do not change***
+//other-self: ***read and write***
 void 
-Scoreboard::markupInstDests(MinorDynInstPtr inst, Cycles retire_time,
+Scoreboard::markupInstDests(ExecContextPtr xc, MinorDynInstPtr inst, Cycles retire_time,
     ThreadContext *thread_context, bool mark_unpredictable)
 {
     if (inst->isFault())
@@ -117,14 +119,15 @@ Scoreboard::markupInstDests(MinorDynInstPtr inst, Cycles retire_time,
     /** Mark each destination register */
     for (unsigned int dest_index = 0; dest_index < num_dests;
         dest_index++) {
+        // no use for riscv
         RegId reg = flattenRegIndex(
                 staticInst->destRegIdx(dest_index), thread_context);
         Index index;
-
+        //sjctodo:rename
         if (findIndex(reg, index)) {
             if (mark_unpredictable)
                 numUnpredictableResults[index]++;
-
+            // mark it here
             inst->flatDestRegIdx[dest_index] = reg;
 
             numResults[index]++;
@@ -212,7 +215,8 @@ Scoreboard::clearInstDests(MinorDynInstPtr inst, bool clear_unpredictable)
 }
 
 bool
-Scoreboard::canInstIssue(ExecContextPtr xc, MinorDynInstPtr inst,
+Scoreboard::canInstIssue(ExecContextPtr xc, 
+    VectorEngineInterface* ve_interface, MinorDynInstPtr inst,
     const std::vector<Cycles> *src_reg_relative_latencies,
     const std::vector<bool> *cant_forward_from_fu_indices,
     Cycles now, ThreadContext *thread_context)
@@ -250,13 +254,18 @@ Scoreboard::canInstIssue(ExecContextPtr xc, MinorDynInstPtr inst,
         RegId original_reg = flattenRegIndex(staticInst->srcRegIdx(src_index),
             thread_context);
         RegIndex& regid = original_reg.index();
-        //SJCTODO
-        if (xc->readIntRegOperand(NULL, regid) != 0) {
+        //sjctodo:rename
+        bool is_renamed = 0;
+        if (xc->readIntRegOperand(NULL, regid) == (int)BEING_RENAMED) {
             return false;
+        } else {
+            is_renamed = 1;
         }
         unsigned short int index;
 
-        if (findIndex(original_reg, index)) {
+        if (is_renamed) {
+            
+        } else if (findIndex(original_reg, index)) {
             bool cant_forward = fuIndices[index] != 1 &&
                 cant_forward_from_fu_indices &&
                 index < cant_forward_from_fu_indices->size() &&

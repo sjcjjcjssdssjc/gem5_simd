@@ -324,7 +324,7 @@ VectorEngine::renameVectorInst(RiscvISA::VectorStaticInst& insn, VectorDynInst *
         } else {
             vector_rename->set_preg_ratscalar(rd,PDst);
             vector_reg_validbit->set_pscalar_reg_valid_bit(PDst, 0);
-            //SJCTODO:rename way
+            //sjctodo:rename way
         }
     } else {
         panic("Invalid Vector Instruction insn=%#h\n", insn.machInst);

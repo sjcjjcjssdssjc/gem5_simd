@@ -81,7 +81,6 @@ VectorEngineInterface::sendCommand(RiscvISA::VectorStaticInst* vinst ,ExecContex
 uint64_t
 VectorEngineInterface::getRenamedRegIndex(RiscvISA::VectorStaticInst* vinst, int idx)
 {
-    //do arch exploration
     uint64_t src1 = vector_engine->vector_rename->get_preg_ratscalar(vinst->rs1());
     uint64_t src2 = vector_engine->vector_rename->get_preg_ratscalar(vinst->rs2());
     uint64_t dst = vector_engine->vector_rename->get_preg_ratscalar(vinst->rd());
@@ -89,6 +88,13 @@ VectorEngineInterface::getRenamedRegIndex(RiscvISA::VectorStaticInst* vinst, int
     if (idx == 0) return src1;
     else if (idx == 1) return src2;
     else return dst;
+}
+
+uint64_t
+VectorEngineInterface::getRenamedRegIndex(int idx)
+{
+    uint64_t src = vector_engine->vector_rename->get_preg_ratscalar(idx);
+    return src;
 }
 
 bool

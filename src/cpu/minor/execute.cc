@@ -606,7 +606,8 @@ Execute::issue(ThreadID thread_id)
             issued = false;
         } else if (inst->staticInst->isVector()) {
             // in execute stage(vectorengine)
-            if (!scoreboard[thread_id].canInstIssue(xc, inst, NULL, NULL,
+            if (!scoreboard[thread_id].canInstIssue(xc,
+                cpu.ve_interface, inst, NULL, NULL,
                 cpu.curCycle(), cpu.getContext(thread_id))) {
                 DPRINTF(CpuVectorIssue,"Vector Ins blocked by scoreboard: %s"
                     "for thread %d\n",*inst, thread.streamSeqNum);
@@ -618,7 +619,7 @@ Execute::issue(ThreadID thread_id)
                 //score board can issue
                 DPRINTF(CpuVectorIssue,"Vector Instruction Issue to exec:"
                     "%s \n",*inst);
-                scoreboard[thread_id].markupInstDests(inst, cpu.curCycle() +
+                scoreboard[thread_id].markupInstDests(xc, inst, cpu.curCycle() +
                     Cycles(0), cpu.getContext(thread_id), true);
 
                 QueuedInst fu_inst(inst);
@@ -662,8 +663,8 @@ Execute::issue(ThreadID thread_id)
 
                     /* Mark the destinations for this instruction as
                      *  busy */
-                    scoreboard[thread_id].markupInstDests(inst, cpu.curCycle() +
-                        Cycles(0), cpu.getContext(thread_id), false);
+                    scoreboard[thread_id].markupInstDests(xc, inst, 
+                    cpu.curCycle() + Cycles(0), cpu.getContext(thread_id), false);
 
                     DPRINTF(MinorExecute, "Issuing %s to %d\n", inst->id, noCostFUIndex);
                     inst->fuIndex = noCostFUIndex;
@@ -709,7 +710,8 @@ Execute::issue(ThreadID thread_id)
                         DPRINTF(MinorExecute, "Can't issue inst: %s as extra"
                             " decoding is suppressing it\n",
                             *inst);
-                    } else if (!scoreboard[thread_id].canInstIssue(xc, inst,
+                    } else if (!scoreboard[thread_id].canInstIssue(xc,
+                        cpu.ve_interface, inst,
                         src_latencies, cant_forward_from_fu_indices,
                         cpu.curCycle(), cpu.getContext(thread_id)))
                     {
@@ -790,7 +792,7 @@ Execute::issue(ThreadID thread_id)
 
                         /* Mark the destinations for this instruction as
                          *  busy */
-                        scoreboard[thread_id].markupInstDests(inst, cpu.curCycle() +
+                        scoreboard[thread_id].markupInstDests(xc, inst, cpu.curCycle() +
                             fu->description.opLat +
                             extra_dest_retire_lat +
                             extra_assumed_lat,
@@ -1328,6 +1330,7 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
              *
              *  For any other case, leave it to the normal instruction
              *  issue below to handle them.
+             *  Can request means lsq is not full
              */
             if (!ex_info.inFUMemInsts->empty() && lsq.canRequest()) {
                 DPRINTF(MinorExecute, "Trying to commit from mem FUs\n");
@@ -1594,6 +1597,7 @@ Execute::evaluate()
 
     /* Do all the cycle-wise activities for dcachePort here to potentially
      *  free up input spaces in the LSQ's requests queue */
+    //TODO:lsq
     lsq.step();
 
     /* Check interrupts first.  Will halt commit if interrupt found */
@@ -1705,7 +1709,8 @@ Execute::evaluate()
             if (!fu->stalled && fu->provides(inst->staticInst->opClass())) {
                 ExecContextPtr xc = std::make_shared<ExecContext>(cpu,
                     *cpu.threads[inst->id.threadId],*this, inst);
-                if (scoreboard[inst->id.threadId].canInstIssue(xc, inst,
+                if (scoreboard[inst->id.threadId].canInstIssue(xc,
+                    cpu.ve_interface, inst,
                     NULL, NULL, cpu.curCycle() + Cycles(1),
                     cpu.getContext(inst->id.threadId))) {
                         can_issue_next = true;
