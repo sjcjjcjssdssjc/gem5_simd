@@ -606,8 +606,13 @@ Execute::issue(ThreadID thread_id)
             issued = false;
         } else if (inst->staticInst->isVector()) {
             // in execute stage(vectorengine)
-            if (!scoreboard[thread_id].canInstIssue(xc,
-                cpu.ve_interface, inst, NULL, NULL,
+            std::vector<bool> v;
+            StaticInstPtr staticInst = inst->staticInst;
+            unsigned int num_srcs = staticInst->numSrcRegs();
+            for (int index = 0; index < num_srcs; index++) {
+                v.push_back(cpu.ve_interface->isIntRegIndexReady(NULL, index));
+            }
+            if (!scoreboard[thread_id].canInstIssue(xc, v, inst, NULL, NULL,
                 cpu.curCycle(), cpu.getContext(thread_id))) {
                 DPRINTF(CpuVectorIssue,"Vector Ins blocked by scoreboard: %s"
                     "for thread %d\n",*inst, thread.streamSeqNum);
@@ -705,13 +710,17 @@ Execute::issue(ThreadID thread_id)
 
                     const std::vector<bool> *cant_forward_from_fu_indices =
                         &(fu->cantForwardFromFUIndices);
-
+                    std::vector<bool> v;
+                    StaticInstPtr staticInst = inst->staticInst;
+                    unsigned int num_srcs = staticInst->numSrcRegs();
+                    for (int index = 0; index < num_srcs; index++) {
+                        v.push_back(cpu.ve_interface->isIntRegIndexReady(NULL, index));
+                    }
                     if (timing && timing->suppress) {
                         DPRINTF(MinorExecute, "Can't issue inst: %s as extra"
                             " decoding is suppressing it\n",
                             *inst);
-                    } else if (!scoreboard[thread_id].canInstIssue(xc,
-                        cpu.ve_interface, inst,
+                    } else if (!scoreboard[thread_id].canInstIssue(xc, v, inst,
                         src_latencies, cant_forward_from_fu_indices,
                         cpu.curCycle(), cpu.getContext(thread_id)))
                     {
@@ -1709,8 +1718,13 @@ Execute::evaluate()
             if (!fu->stalled && fu->provides(inst->staticInst->opClass())) {
                 ExecContextPtr xc = std::make_shared<ExecContext>(cpu,
                     *cpu.threads[inst->id.threadId],*this, inst);
-                if (scoreboard[inst->id.threadId].canInstIssue(xc,
-                    cpu.ve_interface, inst,
+                std::vector<bool> v;
+                StaticInstPtr staticInst = inst->staticInst;
+                unsigned int num_srcs = staticInst->numSrcRegs();
+                for (int index = 0; index < num_srcs; index++) {
+                    v.push_back(cpu.ve_interface->isIntRegIndexReady(NULL, index));
+                }
+                if (scoreboard[inst->id.threadId].canInstIssue(xc, v, inst,
                     NULL, NULL, cpu.curCycle() + Cycles(1),
                     cpu.getContext(inst->id.threadId))) {
                         can_issue_next = true;

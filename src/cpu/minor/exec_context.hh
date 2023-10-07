@@ -174,8 +174,11 @@ class ExecContext : public ::ExecContext
     RegVal
     readIntRegOperand(const StaticInst *si, int idx) override
     {
-        if (idx < 32) {
+        if (si != NULL && idx >= 0 && idx < 32) {
             // compatible for scalar read
+            if (idx != 0 && idx != 1) {
+                printf("err: idx fail %d\n", idx);
+            }
             assert(idx == 0 || idx == 1);
             const RegId& reg = si->srcRegIdx(idx);
             assert(reg.isIntReg());

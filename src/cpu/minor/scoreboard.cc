@@ -216,7 +216,7 @@ Scoreboard::clearInstDests(MinorDynInstPtr inst, bool clear_unpredictable)
 
 bool
 Scoreboard::canInstIssue(ExecContextPtr xc, 
-    VectorEngineInterface* ve_interface, MinorDynInstPtr inst,
+    std::vector<bool> v, MinorDynInstPtr inst,
     const std::vector<Cycles> *src_reg_relative_latencies,
     const std::vector<bool> *cant_forward_from_fu_indices,
     Cycles now, ThreadContext *thread_context)
@@ -256,7 +256,7 @@ Scoreboard::canInstIssue(ExecContextPtr xc,
         RegIndex& regid = original_reg.index();
         //sjctodo:rename
         bool is_renamed = 0;
-        if (xc->readIntRegOperand(NULL, regid) == (int)BEING_RENAMED) {
+        if (xc->readIntRegOperand(NULL, -regid) == (int)BEING_RENAMED) {
             return false;
         } else {
             is_renamed = 1;
@@ -264,7 +264,7 @@ Scoreboard::canInstIssue(ExecContextPtr xc,
         unsigned short int index;
 
         if (is_renamed) {
-            ret = ve_interface->isIntRegIndexReady(NULL, index);
+            ret = v[src_index];
         } else if (findIndex(original_reg, index)) {
             bool cant_forward = fuIndices[index] != 1 &&
                 cant_forward_from_fu_indices &&

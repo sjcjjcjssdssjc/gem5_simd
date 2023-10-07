@@ -84,17 +84,12 @@ VectorEngineInterface::getRenamedRegIndex(RiscvISA::VectorStaticInst* vinst, int
     uint64_t src1 = vector_engine->vector_rename->get_preg_ratscalar(vinst->rs1());
     uint64_t src2 = vector_engine->vector_rename->get_preg_ratscalar(vinst->rs2());
     uint64_t dst = vector_engine->vector_rename->get_preg_ratscalar(vinst->rd());
-    //TODO:get value
+    if (vinst == NULL) {
+        return vector_engine->vector_rename->get_preg_ratscalar(idx);
+    }
     if (idx == 0) return src1;
-    else if (idx == 1) return src2;
-    else return dst;
-}
-
-uint64_t
-VectorEngineInterface::getRenamedRegIndex(int idx)
-{
-    uint64_t src = vector_engine->vector_rename->get_preg_ratscalar(idx);
-    return src;
+    if (idx == 1) return src2;
+    if (idx == -1) return dst;
 }
 
 bool
@@ -102,8 +97,8 @@ VectorEngineInterface::isIntRegIndexReady(RiscvISA::VectorStaticInst* vinst, int
 {
     uint64_t renamed_idx;
     if (vinst) {
-        int index = vinst->srcRegIdx(idx).index();
-        renamed_idx = vector_engine->vector_rename->get_preg_ratscalar(index);
+        const RegId& reg = vinst->srcRegIdx(idx);
+        renamed_idx = vector_engine->vector_rename->get_preg_ratscalar(reg.index());
     } else {
         renamed_idx = vector_engine->vector_rename->get_preg_ratscalar(idx);
     }

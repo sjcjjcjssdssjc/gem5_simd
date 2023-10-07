@@ -72,7 +72,7 @@ public:
         uint64_t src1, uint64_t src2, std::function<void()> done_callback);
 
     uint64_t getRenamedRegIndex(RiscvISA::VectorStaticInst* vinst, int idx);
-    uint64_t getRenamedRegIndex(int idx);
+    //uint64_t getRenamedRegIndex(int idx);
     bool isIntRegIndexReady(RiscvISA::VectorStaticInst* vinst, int idx);
 
     /**
