@@ -87,9 +87,18 @@ VectorEngineInterface::getRenamedRegIndex(RiscvISA::VectorStaticInst* vinst, int
     if (vinst == NULL) {
         return vector_engine->vector_rename->get_preg_ratscalar(idx);
     }
-    if (idx == 0) return src1;
-    if (idx == 1) return src2;
-    if (idx == -1) return dst;
+    if (idx == 0) {
+        printf("__getRenamedRegIndex__ src1 regnum %ld\n", src1);
+        return src1;
+    } else if (idx == 1) {
+        printf("__getRenamedRegIndex__ src2 regnum %ld\n", src2);
+        return src2;
+    } else if (idx == -1) {
+        printf("__getRenamedRegIndex__ dst regnum %ld\n", dst);
+        return dst;
+    } else {
+        assert(0);
+    }
 }
 
 bool

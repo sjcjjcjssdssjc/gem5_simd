@@ -245,10 +245,10 @@ class ExecContext : public ::ExecContext
     setIntRegOperand(const StaticInst *si, int idx, RegVal val) override
     {
         if (idx < 32) {
-            const RegId& reg = si->destRegIdx(idx);
-            assert(reg.isIntReg());
-            thread.setIntReg(reg.index(), val);
-        } else if(idx > 0){
+            // not renamedz
+            printf("__setIntRegOperand__ idx %d\n",idx);
+            thread.setIntReg(idx, val);
+        } else if (idx > 0) {
             additional_regs[idx - 32] = val;
         } else {
             // setRenamedStatus
