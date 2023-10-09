@@ -124,7 +124,7 @@ public:
 
     void set_preg_ratscalar(uint64_t idx, uint64_t val)
     {
-        printf("set preg scalar idx:%d val:%d\n", idx, val);
+        printf("set preg scalar idx:%ld val:%ld\n", idx, val);
         rat_scalar[idx] = val;
     }
 

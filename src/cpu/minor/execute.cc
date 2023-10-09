@@ -1126,7 +1126,7 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
     while (!ex_info.inFlightInsts->empty() && /* Some more instructions to process */
         !branch.isStreamChange() && /* No real branch */
         fault == NoFault && /* No faults */
-        completed_inst && /* Still finding instructions to execute */
+        completed_inst && /* Still finding instructions to execute(core) */
         num_insts_committed != commitLimit) { /* Not reached commit limit */
         if (only_commit_microops) {
             DPRINTF(MinorInterrupt, "Committing tail of insts before"
@@ -1279,7 +1279,7 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
                             DPRINTF(CpuVectorIssue,"Setting register: %d ,"
                                 " with value : %d\n",vector_insn->vd(), gvl);
                             // NOT registered in ROB so not set status
-                            xc->setIntRegOperand(vector_insn,cpu.ve_interface->getRenamedRegIndex(
+                            xc->setIntRegOperand(NULL, cpu.ve_interface->getRenamedRegIndex(
                                         vector_insn, -1), gvl);
                         }
                         src1 = gvl;
@@ -1606,7 +1606,7 @@ Execute::evaluate()
 
     /* Do all the cycle-wise activities for dcachePort here to potentially
      *  free up input spaces in the LSQ's requests queue */
-    //TODO:lsq
+    //TOREAD:lsq
     lsq.step();
 
     /* Check interrupts first.  Will halt commit if interrupt found */
