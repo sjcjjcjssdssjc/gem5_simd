@@ -1075,6 +1075,8 @@ LSQ::tryToSendToTransfers(LSQRequestPtr request)
         if (storeBuffer.canForwardDataToLoad(request, forwarding_slot) !=
             NoAddrRangeCoverage)
         {
+            // Toread
+
             // There's at least another request that targets the same
             // address and is staying in the storeBuffer. Since our
             // request is non-bufferable (e.g., strictly ordered or atomic),

@@ -166,6 +166,7 @@ class ExecContext : public ::ExecContext
     int
     getRenamedStatus(const StaticInst *si, int i)
     {
+        printf("__getRenamedStatus__ %d\n", i);
         int idx = i;
         if (si) idx = si->srcRegIdx(i).index();
         return renamed_status[idx];
@@ -244,22 +245,26 @@ class ExecContext : public ::ExecContext
     void
     setIntRegOperand(const StaticInst *si, int idx, RegVal val) override
     {
-        if (idx < 32) {
-            if (si == NULL) {
-                thread.setIntReg(idx, val);
-                return;
+        printf("__setIntRegOperand__ idx %d %p\n",idx, si);
+        if (idx > 0) {
+            if (idx < 32) {
+                if (si == NULL) {
+                    printf("si null idx %d\n", idx);
+                    thread.setIntReg(idx, val);
+                    return;
+                }
+                //printf("__setIntRegOperand__ idx %d %p\n",idx, si);
+                const RegId& reg = si->destRegIdx(idx);
+                assert(reg.isIntReg());
+                thread.setIntReg(reg.index(), val);
+            } else if(idx > 0){
+                printf("?? %d\n",idx);
+                additional_regs[idx - 32] = val;
             }
-            printf("__setIntRegOperand__ idx %d %p\n",idx, si);
-            const RegId& reg = si->destRegIdx(idx);
-            assert(reg.isIntReg());
-            thread.setIntReg(reg.index(), val);
-        } else if(idx > 0){
-            additional_regs[idx - 32] = val;
         } else {
             // setRenamedStatus
             idx = -idx;
             RenamedStatus to_status = RenamedStatus(val);
-            idx /= 3;
             if (si) idx = si->destRegIdx(idx).index();
             if (to_status == NOT_RENAMED) {
                 renamed_cnt[idx]--;

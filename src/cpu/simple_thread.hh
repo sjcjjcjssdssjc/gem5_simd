@@ -460,6 +460,7 @@ class SimpleThread : public ThreadState, public ThreadContext
     void
     setIntReg(RegIndex reg_idx, RegVal val) override
     {
+        printf("setIntReg %d\n", reg_idx);
         int flatIndex = isa->flattenIntIndex(reg_idx);
         assert(flatIndex < TheISA::NumIntRegs);
         DPRINTF(IntRegs, "Setting int reg %d (%d) to %#x.\n",

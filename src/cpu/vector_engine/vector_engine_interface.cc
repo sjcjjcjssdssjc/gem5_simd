@@ -81,11 +81,12 @@ VectorEngineInterface::sendCommand(RiscvISA::VectorStaticInst* vinst ,ExecContex
 uint64_t
 VectorEngineInterface::getRenamedRegIndex(RiscvISA::VectorStaticInst* vinst, int idx)
 {
-    uint64_t src1 = vector_engine->vector_rename->get_preg_ratscalar(vinst->rs1());
-    uint64_t src2 = vector_engine->vector_rename->get_preg_ratscalar(vinst->rs2());
-    uint64_t dst = vector_engine->vector_rename->get_preg_ratscalar(vinst->rd());
+    VectorRename * vrename = vector_engine->vector_rename;
+    uint64_t src1 = vrename->get_preg_ratscalar(vinst->rs1());
+    uint64_t src2 = vrename->get_preg_ratscalar(vinst->rs2());
+    uint64_t dst = vrename->get_preg_ratscalar(vinst->rd());
     if (vinst == NULL) {
-        return vector_engine->vector_rename->get_preg_ratscalar(idx);
+        return vrename->get_preg_ratscalar(idx);
     }
     if (idx == 0) {
         printf("__getRenamedRegIndex__ src1 regnum %ld\n", src1);
@@ -105,13 +106,15 @@ bool
 VectorEngineInterface::isIntRegIndexReady(RiscvISA::VectorStaticInst* vinst, int idx)
 {
     uint64_t renamed_idx;
+    VectorValidBit *vreg_validbit = vector_engine->vector_reg_validbit;
+    VectorRename *vrename = vector_engine->vector_rename;
     if (vinst) {
         const RegId& reg = vinst->srcRegIdx(idx);
-        renamed_idx = vector_engine->vector_rename->get_preg_ratscalar(reg.index());
+        renamed_idx = vrename->get_preg_ratscalar(reg.index());
     } else {
-        renamed_idx = vector_engine->vector_rename->get_preg_ratscalar(idx);
+        renamed_idx = vrename->get_preg_ratscalar(idx);
     }
-    return vector_engine->vector_reg_validbit->get_preg_valid_bit(renamed_idx);
+    return vreg_validbit->get_preg_valid_bit(renamed_idx);
 }
 
 uint64_t

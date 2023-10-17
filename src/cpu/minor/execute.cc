@@ -1103,7 +1103,7 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
      *  1) Responses returning from the LSQ
      *  2) Mem ops issued to the LSQ ('committed' from the FUs) earlier
      *      than their position in the inFlightInsts queue, but after all
-     *      their dependencies are resolved.
+     *      their dependencies are **resolved**.
      */
 
     /* Has an instruction been completed?  Once this becomes false, we stop
@@ -1196,6 +1196,7 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
 
             completed_mem_ref = true;
             completed_inst = true;
+#define THE_ISA RISCV_ISA
 #if THE_ISA == RISCV_ISA
         /*
          * The interface with the Vector Engine, only for RISC-V systems
@@ -1223,11 +1224,7 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
                 waiting_vector_engine_resp = false;
                 completed_inst = true;
                 completed_vec_inst = false;
-        } else if (can_commit_insts && inst->staticInst->isVector()
-            && cpu.ve_interface->isIntRegIndexReady(
-                dynamic_cast<RiscvISA::VectorStaticInst*>(inst->staticInst.get()), 0)
-            && cpu.ve_interface->isIntRegIndexReady(
-                dynamic_cast<RiscvISA::VectorStaticInst*>(inst->staticInst.get()), 1)) {
+        } else if (can_commit_insts && inst->staticInst->isVector()) {
             // change to inst->dynamicInst someday(get)
             /* Is this instruction discardable as its streamSeqNum
              *  doesn't match? */
@@ -1258,65 +1255,84 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
                     uint64_t pc = inst->pc.instAddr();
                     vector_insn->setPC(pc);
                     uint64_t src1, src2;
-
+                    bool hazard = false;
                     if (vector_insn->isVecConfig()) {
                         bool vsetvl = (vector_insn->getName() == "vsetvl");
-                        uint64_t rvl = xc->readIntRegOperand(
-                                    NULL, cpu.ve_interface->getRenamedRegIndex(
-                                        vector_insn, 0));
-                        uint64_t vtype = (vsetvl) ?
-                            xc->readIntRegOperand(
-                                    NULL, cpu.ve_interface->getRenamedRegIndex(
-                                        vector_insn, 1)):
-                            (uint64_t)vector_insn->vtype();
-                        uint64_t gvl = cpu.ve_interface->reqAppVectorLength(
-                            rvl,vtype,(vector_insn->vs1() == 0));
-
-                        DPRINTF(CpuVectorIssue,"vsetvl: %d, rvl: %d vtype: %d gvl: %d \n",vsetvl,rvl,vtype,gvl );
-                        xc->setMiscReg(RiscvISA::MISCREG_VL,gvl);
-                        xc->setMiscReg(RiscvISA::MISCREG_VTYPE,vtype);
-                        if (vector_insn->vd() != 0) {
-                            DPRINTF(CpuVectorIssue,"Setting register: %d ,"
-                                " with value : %d\n",vector_insn->vd(), gvl);
-                            // NOT registered in ROB so not set status
-                            xc->setIntRegOperand(NULL, cpu.ve_interface->getRenamedRegIndex(
-                                        vector_insn, -1), gvl);
+                        if (!cpu.ve_interface->isIntRegIndexReady(
+                            dynamic_cast<RiscvISA::VectorStaticInst*>(inst->staticInst.get()), 0)
+                            || !cpu.ve_interface->isIntRegIndexReady(
+                            dynamic_cast<RiscvISA::VectorStaticInst*>(inst->staticInst.get()), 1)
+                            || xc->readIntRegOperand(NULL, -inst->staticInst.get()->srcRegIdx(0).index())
+                                == (int)BEING_RENAMED
+                            || xc->readIntRegOperand(NULL, -inst->staticInst.get()->srcRegIdx(1).index())
+                                == (int)BEING_RENAMED) {
+                            hazard = true;
+                        } else {
+                            uint64_t rvl = xc->readIntRegOperand(NULL, cpu.ve_interface->getRenamedRegIndex(vector_insn, 0));
+                            uint64_t vtype = (vsetvl) ?
+                                xc->readIntRegOperand(NULL, cpu.ve_interface->getRenamedRegIndex(vector_insn, 1)):
+                                (uint64_t)vector_insn->vtype();
+                            uint64_t gvl = cpu.ve_interface->reqAppVectorLength(rvl,vtype,(vector_insn->vs1() == 0));
+                            src1 = gvl;
+                            src2 = vtype;
+                            DPRINTF(CpuVectorIssue,"vsetvl: %d, rvl: %d vtype: %d gvl: %d \n",vsetvl,rvl,vtype,gvl );
+                            xc->setMiscReg(RiscvISA::MISCREG_VL,gvl);
+                            xc->setMiscReg(RiscvISA::MISCREG_VTYPE,vtype);
+                            if (vector_insn->vd() != 0) {
+                                DPRINTF(CpuVectorIssue,"Setting register: %d ,"
+                                    " with value : %d\n",vector_insn->vd(), gvl);
+                                // NOT registered in ROB so not set status
+                                xc->setIntRegOperand(NULL, cpu.ve_interface->getRenamedRegIndex( \
+                                            vector_insn, -1), gvl);
+                            }
                         }
-                        src1 = gvl;
-                        src2 = vtype;
                     } else {
-                        bool vx_src = (vector_insn->func3() == 4) || (vector_insn->func3() == 6);
-                        bool vf_src = (vector_insn->func3() == 5) && vector_insn->isVectorInstArith();
+                        bool vx_src = (vector_insn->func3() == 4) 
+                                        || (vector_insn->func3() == 6);
+                        bool vf_src = (vector_insn->func3() == 5)
+                                        && vector_insn->isVectorInstArith();
                         bool vi_src = (vector_insn->func3() == 3);
                         // readIntRegOperan is renamed
                         // xc->readIntRegOperan(vector_insn,0);
-                        src1 = (vf_src) ? xc->readFloatRegOperandBits(vector_insn,0) :
-                                xc->readIntRegOperand(
-                                    NULL, cpu.ve_interface->getRenamedRegIndex(
-                                        vector_insn, 0));
-                        src2 = xc->readIntRegOperand(
-                                    NULL, cpu.ve_interface->getRenamedRegIndex(
-                                        vector_insn, 1));
-                        xc->setIntRegOperand(NULL,
-                            -cpu.ve_interface->getRenamedRegIndex(vector_insn, -1),
-                            BEING_RENAMED);
-                        //xc->setRenamedStatus(BEING_RENAMED, NULL, \
-                        cpu.ve_interface->getRenamedRegIndex(vector_insn, -1));
+                        if ((!vf_src && (!cpu.ve_interface->isIntRegIndexReady(
+                            dynamic_cast<RiscvISA::VectorStaticInst*>(inst->staticInst.get()), 0)
+                            || xc->readIntRegOperand(NULL, -inst->staticInst.get()->srcRegIdx(0).index())
+                                == (int)BEING_RENAMED))
+                            || !cpu.ve_interface->isIntRegIndexReady(
+                            dynamic_cast<RiscvISA::VectorStaticInst*>(inst->staticInst.get()), 1)
+                            || xc->readIntRegOperand(NULL, -inst->staticInst.get()->srcRegIdx(1).index())
+                                == (int)BEING_RENAMED) {
+                            hazard = true;
+                        } else {
+                            src1 = (vf_src) ? xc->readFloatRegOperandBits(vector_insn,0) :
+                                    xc->readIntRegOperand(
+                                        NULL, cpu.ve_interface->getRenamedRegIndex(
+                                            vector_insn, 0));
+                            src2 = xc->readIntRegOperand(
+                                        NULL, cpu.ve_interface->getRenamedRegIndex(
+                                            vector_insn, 1));
+                            xc->setIntRegOperand(NULL, \
+                                -cpu.ve_interface->getRenamedRegIndex(vector_insn, -1), \
+                                BEING_RENAMED);
+                            //xc->setRenamedStatus(BEING_RENAMED, NULL, \
+                                cpu.ve_interface->getRenamedRegIndex(vector_insn, -1));
+                        }
                     }
+                    if (!hazard) {
+                        DPRINTF(CpuVectorIssue,"Sending vector isnt to the Vector"
+                            " Engine: %s , pc: 0x%8X\n",*inst , pc);
 
-                    DPRINTF(CpuVectorIssue,"Sending vector isnt to the Vector"
-                        " Engine: %s , pc: 0x%8X\n",*inst , pc);
+                        completed_inst = false;
+                        completed_vec_inst = false;
+                        waiting_vector_engine_resp = true;
 
-                    completed_inst = false;
-                    completed_vec_inst = false;
-                    waiting_vector_engine_resp = true;
-
-                    cpu.ve_interface->sendCommand(vector_insn,xc,src1,src2,
-                        [this,inst,vector_insn]() mutable {
-                        DPRINTF(CpuVectorIssue,"The instruction has been "
-                        "hosted by the Vector Engine %s \n",*inst );
-                        completed_vec_inst = true;
-                    });
+                        cpu.ve_interface->sendCommand(vector_insn,xc,src1,src2,
+                            [this,inst,vector_insn]() mutable {
+                            DPRINTF(CpuVectorIssue,"The instruction has been "
+                            "hosted by the Vector Engine %s \n",*inst );
+                            completed_vec_inst = true;
+                        });
+                    }
                 }
             }
             else {
