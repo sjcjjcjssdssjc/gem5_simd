@@ -244,6 +244,11 @@ class ExecContext {
         panic("ExecContext::readMem() should be overridden\n");
     }
 
+    virtual void setRenamedStatus(RenamedStatus to_status, const StaticInst *si, int i)
+    {
+        panic("ExecContext::setRenamedStatus() should be overridden\n");
+    }
+
     /**
      * Initiate a timing memory read operation.  Must be overridden
      * for exec contexts that support timing memory mode.  Not pure

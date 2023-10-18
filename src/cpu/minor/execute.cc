@@ -1311,10 +1311,10 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
                             src2 = xc->readIntRegOperand(
                                         NULL, cpu.ve_interface->getRenamedRegIndex(
                                             vector_insn, 1));
-                            xc->setIntRegOperand(NULL, \
+                            //xc->setIntRegOperand(NULL, \
                                 -cpu.ve_interface->getRenamedRegIndex(vector_insn, -1), \
                                 BEING_RENAMED);
-                            //xc->setRenamedStatus(BEING_RENAMED, NULL, \
+                            xc->setRenamedStatus(BEING_RENAMED, NULL, \
                                 cpu.ve_interface->getRenamedRegIndex(vector_insn, -1));
                         }
                     }
