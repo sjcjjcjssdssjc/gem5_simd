@@ -406,12 +406,6 @@ VectorEngine::dispatch(RiscvISA::VectorStaticInst& insn, ExecContextPtr& xc,
             //bool valid_old_dst, bool rename_scalar
             uint32_t rob_entry = vector_rob->set_rob_entry(
                 xc, vector_dyn_insn->get_renamed_old_dst(), 1, 1);
-            xc->setIntRegOperand(NULL,
-                -vector_dyn_insn->get_renamed_dst(),
-                Minor::AFTER_RENAME);
-            //xc->setRenamedStatus(Minor::AFTER_RENAME, \
-                                    NULL, \
-                                    vector_dyn_insn->get_renamed_dst());
             vector_dyn_insn->set_rob_num(rob_entry);
             vector_inst_queue->Instruction_Queue.push_back(
             new InstQueue::QueueEntry(insn,vector_dyn_insn,xc,

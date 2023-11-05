@@ -1262,15 +1262,15 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
                             dynamic_cast<RiscvISA::VectorStaticInst*>(inst->staticInst.get()), 0)
                             || !cpu.ve_interface->isIntRegIndexReady(
                             dynamic_cast<RiscvISA::VectorStaticInst*>(inst->staticInst.get()), 1)
-                            || xc->readIntRegOperand(NULL, -inst->staticInst.get()->srcRegIdx(0).index())
+                            || xc->getRenamedStatus(NULL, inst->staticInst.get()->srcRegIdx(0).index())
                                 == (int)BEING_RENAMED
-                            || xc->readIntRegOperand(NULL, -inst->staticInst.get()->srcRegIdx(1).index())
+                            || xc->getRenamedStatus(NULL, inst->staticInst.get()->srcRegIdx(1).index())
                                 == (int)BEING_RENAMED) {
                             hazard = true;
                         } else {
-                            uint64_t rvl = xc->readIntRegOperand(NULL, cpu.ve_interface->getRenamedRegIndex(vector_insn, 0));
+                            uint64_t rvl = xc->getRenamedStatus(NULL, cpu.ve_interface->getRenamedRegIndex(vector_insn, 0));
                             uint64_t vtype = (vsetvl) ?
-                                xc->readIntRegOperand(NULL, cpu.ve_interface->getRenamedRegIndex(vector_insn, 1)):
+                                xc->getRenamedStatus(NULL, cpu.ve_interface->getRenamedRegIndex(vector_insn, 1)):
                                 (uint64_t)vector_insn->vtype();
                             uint64_t gvl = cpu.ve_interface->reqAppVectorLength(rvl,vtype,(vector_insn->vs1() == 0));
                             src1 = gvl;
@@ -1296,24 +1296,21 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
                         // xc->readIntRegOperan(vector_insn,0);
                         if ((!vf_src && (!cpu.ve_interface->isIntRegIndexReady(
                             dynamic_cast<RiscvISA::VectorStaticInst*>(inst->staticInst.get()), 0)
-                            || xc->readIntRegOperand(NULL, -inst->staticInst.get()->srcRegIdx(0).index())
+                            || xc->getRenamedStatus(NULL, inst->staticInst.get()->srcRegIdx(0).index())
                                 == (int)BEING_RENAMED))
                             || !cpu.ve_interface->isIntRegIndexReady(
                             dynamic_cast<RiscvISA::VectorStaticInst*>(inst->staticInst.get()), 1)
-                            || xc->readIntRegOperand(NULL, -inst->staticInst.get()->srcRegIdx(1).index())
+                            || xc->getRenamedStatus(NULL, inst->staticInst.get()->srcRegIdx(1).index())
                                 == (int)BEING_RENAMED) {
                             hazard = true;
                         } else {
                             src1 = (vf_src) ? xc->readFloatRegOperandBits(vector_insn,0) :
-                                    xc->readIntRegOperand(
+                                    xc->getRenamedStatus(
                                         NULL, cpu.ve_interface->getRenamedRegIndex(
                                             vector_insn, 0));
-                            src2 = xc->readIntRegOperand(
+                            src2 = xc->getRenamedStatus(
                                         NULL, cpu.ve_interface->getRenamedRegIndex(
                                             vector_insn, 1));
-                            //xc->setIntRegOperand(NULL, \
-                                -cpu.ve_interface->getRenamedRegIndex(vector_insn, -1), \
-                                BEING_RENAMED);
                             xc->setRenamedStatus(BEING_RENAMED, NULL, \
                                 cpu.ve_interface->getRenamedRegIndex(vector_insn, -1));
                         }

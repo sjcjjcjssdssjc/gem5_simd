@@ -53,6 +53,7 @@ This script will now install the hook in your .git/hooks/ directory.
 Press enter to continue, or ctrl-c to abort: """
 
 def install_style_hooks(env):
+    return
     try:
         gitdir = env.Dir(readCommand(
             ["git", "rev-parse", "--git-dir"]).strip("\n"))

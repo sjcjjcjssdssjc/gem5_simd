@@ -228,17 +228,15 @@ VectorLane::issue(VectorEngine& vector_wrapper,
                     DPRINTF(VectorLane,
                         "Writting Float Register: %d ,data: 0x%x \n",
                         (uint64_t)dyn_insn->get_renamed_dst(), scalar_data);
-                }
-                else if (move_to_core_int) {
+                } else if (move_to_core_int) {
+                    //simutaneously set original and additional.(not_renamed is ok)
+                    //another option: set original when release.(after_rename)
                     xc->setIntRegOperand(
                         dyn_insn->get_VectorStaticInst(),
                         (uint64_t)dyn_insn->get_renamed_dst(), scalar_data);
                     xc->setIntRegOperand(
                         dyn_insn->get_VectorStaticInst(), 0, scalar_data);
-                    xc->setIntRegOperand(NULL,
-                        -(uint64_t)dyn_insn->get_renamed_dst(),
-                        Minor::NOT_RENAMED);
-                    //xc->setRenamedStatus(Minor::NOT_RENAMED, \
+                    xc->setRenamedStatus(Minor::NOT_RENAMED, \
                                             NULL, \
                                             (uint64_t)dyn_insn->get_renamed_dst());
                     DPRINTF(VectorLane,

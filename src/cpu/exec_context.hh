@@ -51,7 +51,6 @@
 #include "cpu/translation.hh"
 #include "mem/request.hh"
 #include "cpu/reg_num.h"
-
 /**
  * The ExecContext is an abstract base class the provides the
  * interface used by the ISA to manipulate the state of the CPU model.
@@ -208,7 +207,6 @@ class ExecContext {
      * side effects due to reading that register.
      */
     virtual RegVal readMiscReg(int misc_reg) = 0;
-    //virtual void setRenamedStatus(Minor::RenamedStatus to_status, const StaticInst *si, int i) = 0;
 
     /**
      * Sets a miscellaneous register, handling any architectural
@@ -244,9 +242,13 @@ class ExecContext {
         panic("ExecContext::readMem() should be overridden\n");
     }
 
-    virtual void setRenamedStatus(RenamedStatus to_status, const StaticInst *si, int i)
+    virtual void setRenamedStatus(Minor::RenamedStatus to_status, const StaticInst *si, int i)
     {
         panic("ExecContext::setRenamedStatus() should be overridden\n");
+    }
+    virtual int getRenamedStatus(const StaticInst *si, int i)
+    {
+        panic("ExecContext::getRenamedStatus() should be overridden\n");
     }
 
     /**

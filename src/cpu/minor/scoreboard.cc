@@ -256,11 +256,11 @@ Scoreboard::canInstIssue(ExecContextPtr xc,
         RegIndex& regid = original_reg.index();
         //sjctodo:rename
         bool is_renamed = 0;
-        if (xc->readIntRegOperand(NULL, -regid)
+        if (xc->getRenamedStatus(NULL, regid)
                 == (int)BEING_RENAMED) {
             return false;
         } else {
-            is_renamed = (xc->readIntRegOperand(NULL, -regid) 
+            is_renamed = (xc->getRenamedStatus(NULL, regid) 
                             != (int)NOT_RENAMED);
         }
         unsigned short int index;

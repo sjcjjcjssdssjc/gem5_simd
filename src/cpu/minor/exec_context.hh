@@ -164,9 +164,9 @@ class ExecContext : public ::ExecContext
     }
 
     int
-    getRenamedStatus(const StaticInst *si, int i)
+    getRenamedStatus(const StaticInst *si, int i) override
     {
-        printf("__getRenamedStatus__ %d\n", i);
+        //printf("__getRenamedStatus__ %d\n", i);
         int idx = i;
         if (si) idx = si->srcRegIdx(i).index();
         return renamed_status[idx];
@@ -188,9 +188,7 @@ class ExecContext : public ::ExecContext
             return additional_regs[idx - 32];
             //return thread.readIntReg((RegIndex)idx);
         } else {
-            idx = -idx;
-            if (si) idx = si->srcRegIdx(idx).index();
-            return renamed_status[idx];
+            assert(0);
         }
     }
 
@@ -245,15 +243,14 @@ class ExecContext : public ::ExecContext
     void
     setIntRegOperand(const StaticInst *si, int idx, RegVal val) override
     {
-        printf("__setIntRegOperand__ idx %d %p\n",idx, si);
-        if (idx > 0) {
-            if (idx < 32) {
+        //printf("__setIntRegOperand__ idx %d %p\n",idx, si);
+        if (idx >= 0) {
+            if (idx >= 0 && idx < 32) {
                 if (si == NULL) {
                     printf("si null idx %d\n", idx);
                     thread.setIntReg(idx, val);
                     return;
                 }
-                //printf("__setIntRegOperand__ idx %d %p\n",idx, si);
                 const RegId& reg = si->destRegIdx(idx);
                 assert(reg.isIntReg());
                 thread.setIntReg(reg.index(), val);
@@ -262,22 +259,7 @@ class ExecContext : public ::ExecContext
                 additional_regs[idx - 32] = val;
             }
         } else {
-            // setRenamedStatus
-            idx = -idx;
-            RenamedStatus to_status = RenamedStatus(val);
-            if (si) idx = si->destRegIdx(idx).index();
-            if (to_status == NOT_RENAMED) {
-                renamed_cnt[idx]--;
-                assert(renamed_cnt[idx] >= 0);
-                if (renamed_cnt[idx] >= 1) {
-                    return;
-                }
-            } else if (to_status == AFTER_RENAME) {
-                renamed_cnt[idx]++;
-            } else {
-                assert(renamed_cnt[idx] == 0);
-            }
-            renamed_status[idx] = to_status;
+            assert(0);
         }
     }
 
